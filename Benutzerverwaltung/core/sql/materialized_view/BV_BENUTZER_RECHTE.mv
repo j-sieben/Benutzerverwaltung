@@ -1,0 +1,54 @@
+--------------------------------------------------------
+--  DDL for Materialized View BV_BENUTZER_RECHTE
+--------------------------------------------------------
+
+CREATE MATERIALIZED VIEW "BV_BENUTZER_RECHTE" ("BEN_ID", "BEN_AD", "ANW_ID", "ANW_APEX_ALIAS", "REC_ID")
+REFRESH COMPLETE ON DEMAND 
+START WITH sysdate+0 NEXT trunc(sysdate) + interval '1 1' day to hour
+AS
+  with rollen as(
+       select distinct target.rol_id, r.anw_id, r.rol_id target_rol_id
+         from ( select rro_rol_id rol_id, rro_anw_id anw_id, sys_connect_by_path(rro_rol_id, ':') || ':' pfad
+                  from bv_rolle_rolle rro
+                 start with rro_rol_id = rro_parent_rol_id
+               connect by nocycle prior rro_rol_id = rro_parent_rol_id and prior rro_anw_id = rro_anw_id
+                 order siblings by rro_rol_id) r
+         join bv_rolle target
+           on instr(pfad, ':' || target.rol_id || ':') > 0
+          and target.rol_anw_id = r.anw_id
+        where target.rol_aktiv = 'Y')
+select ben.ben_id,
+       ben.ben_ad,
+       anw.anw_id,
+       anw.anw_apex_alias,
+       rre.rre_rec_id rec_id
+  from bv_benutzer ben
+  join bv_benutzer_rolle bro on ben.ben_id = bro.bro_ben_id
+  join rollen rol on bro.bro_rol_id = rol.rol_id and bro.bro_anw_id = rol.anw_id
+  join bv_rolle_recht rre on rol.target_rol_id = rre.rre_rol_id and rol.anw_id = rre.rre_anw_id
+  join bv_anwendung anw on rol.anw_id = anw.anw_id
+ where sysdate between bro.bro_gueltig_von and bro.bro_gueltig_bis
+   and sysdate between ben.ben_aktiv_von and ben.ben_aktiv_bis
+ union -- UNION, um Dubletten (Recht per Rolle und per direktem Grant gewaehrt) zu unterdruecken
+select ben.ben_id,
+       ben.ben_ad,
+       anw.anw_id anw_id,
+       anw.anw_apex_alias,
+       bre.bre_rec_id rec_id
+  from bv_benutzer ben
+  join bv_benutzer_recht bre on ben.ben_id = bre.bre_ben_id
+  join bv_recht rec on bre.bre_rec_id = rec.rec_id and bre.bre_anw_id = rec.rec_anw_id
+  join bv_anwendung anw on rec_anw_id = anw.anw_id
+ where sysdate between bre.bre_gueltig_von and bre.bre_gueltig_bis
+   and sysdate between ben.ben_aktiv_von and ben.ben_aktiv_bis
+   and rec.rec_aktiv = 'Y';
+
+CREATE INDEX "IDX_BV_BENUTZER_RECHTE" ON "BV_BENUTZER_RECHTE" ("BEN_ID", "ANW_ID", "REC_ID");
+CREATE INDEX "IDX_BV_BENUTZER_RECHTE_APP" ON "BV_BENUTZER_RECHTE" ("BEN_AD", "ANW_APEX_ALIAS", "REC_ID");
+
+COMMENT ON COLUMN "BV_BENUTZER_RECHTE"."BEN_ID" IS 'Benutzer-ID, Technischer Schluessel. Wird gebraucht fuer Joins.';
+COMMENT ON COLUMN "BV_BENUTZER_RECHTE"."BEN_AD" IS 'AD-Name des Benutzers, wir als Filterkriterium verwendet';
+COMMENT ON COLUMN "BV_BENUTZER_RECHTE"."ANW_ID" IS 'Anwendungs-ID, wird gebraucht fuer Joins';
+COMMENT ON COLUMN "BV_BENUTZER_RECHTE"."ANW_APEX_ALIAS" IS 'APEX-Alias der Anwendung, wir als Filterkriterium verwendet';
+COMMENT ON COLUMN "BV_BENUTZER_RECHTE"."REC_ID" IS 'Recht, das der Benutzer haelt.';
+COMMENT ON MATERIALIZED VIEW "BV_BENUTZER_RECHTE"  IS 'Materialisierte Sicht zur Integration der Rechte pro Benutzer';
