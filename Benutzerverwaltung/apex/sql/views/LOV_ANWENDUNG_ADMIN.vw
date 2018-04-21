@@ -5,7 +5,7 @@
   CREATE OR REPLACE EDITIONABLE VIEW "LOV_ANWENDUNG_ADMIN" ("D", "R") AS 
   select anw_name d, anw_id r
   from bv_anwendung anw
-  join table(bl_recht_pkg.get_admin_anw) rec
+  join table(bl_recht_pkg.get_admin_anw('&INSTALL_USER.', '&APEX_ALIAS.')) rec
     on anw.anw_id = rec.column_value
  where anw.anw_aktiv = 'Y'
  order by anw_name;

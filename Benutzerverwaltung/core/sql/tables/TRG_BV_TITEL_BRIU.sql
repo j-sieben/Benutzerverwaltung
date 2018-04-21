@@ -2,7 +2,7 @@
 --  DDL for Trigger TRG_BV_TITEL_BRIU
 --------------------------------------------------------
 
-  CREATE OR REPLACE EDITIONABLE TRIGGER "TRG_BV_TITEL_BRIU" 
+CREATE OR REPLACE EDITIONABLE TRIGGER "TRG_BV_TITEL_BRIU" 
 before insert or update on bv_titel
 for each row
 begin
@@ -12,7 +12,7 @@ begin
    * - TIT_AKTIV auf N setzen, falls NULL (Anwendung interpretiert NULL as N)<br>
    */
   :new.tit_id := upper(dbms_assert.simple_sql_name(:new.tit_id));
-  :new.tit_aktiv := nvl(upper(:new.tit_aktiv), 'N');
+  :new.tit_aktiv := coalesce(upper(:new.tit_aktiv), 'N');
 end;
 /
 ALTER TRIGGER "TRG_BV_TITEL_BRIU" ENABLE;

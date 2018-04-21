@@ -13,6 +13,8 @@ as
     return boolean;
    
   procedure handle_admin_ben;
+   
+  procedure handle_admin_ben_ig;
 
 end ui_admin_ben_pkg;
 

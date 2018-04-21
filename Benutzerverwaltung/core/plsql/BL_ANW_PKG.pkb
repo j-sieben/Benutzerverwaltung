@@ -1,17 +1,13 @@
---------------------------------------------------------
---  DDL for Package Body BL_ANW_PKG
---------------------------------------------------------
-
-  CREATE OR REPLACE EDITIONABLE PACKAGE BODY "BL_ANW_PKG" as
+create or replace PACKAGE BODY bl_anw_pkg as
 
   /* Package-Konstanten */
   c_anw_id constant varchar2(2) := 'BV';
   c_aar_hier_einfach constant bv_anwendung_art.aar_id%type := 'HIERARCHIE_EINFACH';
   c_aar_hier_komplex constant bv_anwendung_art.aar_id%type := 'HIERARCHIE_KOMPLEX';
-  
-  
+
+
   /* Hilfsfunktionen */
-  
+
   function get_aar_id(
     p_anw_id in bv_anwendung.anw_id%type)
     return bv_anwendung_art.aar_id%type
@@ -24,7 +20,7 @@
      where anw_id = p_anw_id;
     return l_aar_id;
   end get_aar_id;
-  
+
 
   function cast_to_recht(
     p_row in bv_rolle%rowtype)
@@ -40,7 +36,7 @@
     l_rec_row.rec_sortierung := p_row.rol_sortierung;
     return l_rec_row;
   end cast_to_recht;
-  
+
 
   /* INTEFACE */
   procedure create_anwendung(
@@ -94,7 +90,7 @@
     end case;
 
     -- Asynchrone Erstellung der Views im Transaktionskontext
-    utils.submit_job(replace(c_action_tmpl, '#ANW_ID#', l_anw_id));
+    bv_utils.submit_job(replace(c_action_tmpl, '#ANW_ID#', l_anw_id));
   end create_anwendung;
 
 
@@ -155,7 +151,7 @@
 
     -- Asynchrone Loeschung der Views im Transaktionskontext
     l_action := replace(l_action, '#ANW_ID#', p_row.anw_id);
-    utils.submit_job(l_action);
+    bv_utils.submit_job(l_action);
 
   end drop_anwendung;
 
@@ -169,7 +165,7 @@
 
     cursor view_cur(p_view_names in varchar2) is
       select column_value view_name
-        from table(utils.string_to_table(p_view_names));
+        from table(bv_utils.string_to_table(p_view_names));
   begin
     select anw_schema
       into l_anw_schema
@@ -225,9 +221,15 @@ select rol_id, rol_name, rol_beschreibung, rol_aktiv, rol_sortierung
       l_stmt := q'[grant select, references on #VIEW_NAME# to #ANW_SCHEMA#]';
       execute immediate replace(replace(l_stmt, '#ANW_SCHEMA#', l_anw_schema), '#VIEW_NAME#', vw.view_name);
     end loop;
-    
-    execute immediate 'grant execute on bv_recht_pkg to ' || l_anw_schema;
-  
+
+    begin
+      l_stmt := 'grant execute on &INSTALL_USER..bv_recht_pkg to ' || l_anw_schema;
+      execute immediate l_stmt;
+    exception
+      when others then
+        dbms_output.put_line('Grant konnte nicht erteilt werden mit Anweisung ' || l_stmt);
+    end;
+
   end create_anw_views;
 
 
@@ -243,8 +245,8 @@ select rol_id, rol_name, rol_beschreibung, rol_aktiv, rol_sortierung
      execute immediate 'drop view ' || vw.view_name;
     end loop;
   end drop_anw_views;
-    
-  
+
+
   procedure merge_rolle(
     p_row in bv_rolle%rowtype)
   as
@@ -267,7 +269,7 @@ select rol_id, rol_name, rol_beschreibung, rol_aktiv, rol_sortierung
           rol_sortierung = v.rol_sortierung
      when not matched then insert (rol_id, rol_anw_id, rol_name, rol_beschreibung, rol_aktiv, rol_sortierung)
           values(v.rol_id, v.rol_anw_id, v.rol_name, v.rol_beschreibung, v.rol_aktiv, v.rol_sortierung);
-          
+
     case
     when get_aar_id(p_row.rol_anw_id) in (c_aar_hier_einfach, c_aar_hier_komplex) then
       merge_recht(cast_to_recht(p_row));
@@ -280,8 +282,8 @@ select rol_id, rol_name, rol_beschreibung, rol_aktiv, rol_sortierung
       null;
     end case;
   end merge_rolle;
-    
-    
+
+
   procedure delete_rolle(
     p_row in bv_rolle%rowtype)
   as
@@ -307,8 +309,8 @@ select rol_id, rol_name, rol_beschreibung, rol_aktiv, rol_sortierung
 
     bl_recht_pkg.refresh_mv;
   end delete_rolle;
-  
-  
+
+
   procedure merge_recht(
     p_row in bv_recht%rowtype)
   as
@@ -331,8 +333,8 @@ select rol_id, rol_name, rol_beschreibung, rol_aktiv, rol_sortierung
      when not matched then insert (rec_id, rec_anw_id, rec_name, rec_beschreibung, rec_aktiv, rec_sortierung)
           values(v.rec_id, v.rec_anw_id, v.rec_name, v.rec_beschreibung, v.rec_aktiv, v.rec_sortierung);
   end merge_recht;
-    
-  
+
+
   procedure delete_recht(
     p_row in bv_recht%rowtype)
   as
@@ -340,8 +342,8 @@ select rol_id, rol_name, rol_beschreibung, rol_aktiv, rol_sortierung
     delete from bv_recht
      where rec_id = p_row.rec_id;
   end delete_recht;
-  
-    
+
+
   procedure merge_rolle_recht(
     p_row in bv_rolle_recht%rowtype)
   as
@@ -362,8 +364,8 @@ select rol_id, rol_name, rol_beschreibung, rol_aktiv, rol_sortierung
      when not matched then insert(rre_rol_id, rre_rec_id, rre_anw_id, rre_gueltig_von, rre_gueltig_bis)
           values (v.rre_rol_id, v.rre_rec_id, v.rre_anw_id, v.rre_gueltig_von, v.rre_gueltig_bis);
   end merge_rolle_recht;
-    
-    
+
+
   procedure delete_rolle_recht(
     p_row in bv_rolle_recht%rowtype)
   as
@@ -373,24 +375,24 @@ select rol_id, rol_name, rol_beschreibung, rol_aktiv, rol_sortierung
        and rre_rec_id = p_row.rre_rec_id
        and rre_anw_id = p_row.rre_anw_id;
   end delete_rolle_recht;
-    
-  
+
+
   procedure merge_rolle_rolle(
     p_row in bv_rolle_rolle%rowtype)
   as
   begin
     null;
   end merge_rolle_rolle;
-    
-  
+
+
   procedure delete_rolle_rolle(
     p_row in bv_rolle_rolle%rowtype)
   as
   begin
     null;
   end delete_rolle_rolle;
-  
-  
+
+
   procedure einfache_rollen_hierarchie(
     p_anw_id in bv_anwendung.anw_id%type,
     p_rol_hierarchie in varchar2)
@@ -404,7 +406,7 @@ select rol_id, rol_name, rol_beschreibung, rol_aktiv, rol_sortierung
 
     -- Neue Eintraege gemaess Sortierung des Controls erstellen
     l_rollen := apex_util.string_to_table(p_rol_hierarchie);
-    
+
     -- Erste Rolle ist Master und wird ROL_ID = PARENT_ROL_ID
     l_rol_parent := l_rollen(l_rollen.first);
     for rol in l_rollen.first .. l_rollen.last loop
@@ -414,7 +416,7 @@ select rol_id, rol_name, rol_beschreibung, rol_aktiv, rol_sortierung
       values (l_rollen(rol), l_rol_parent, p_anw_id);
       -- Aktuelle Rolle als Parent merken
       l_rol_parent := l_rollen(rol);
-      
+
       -- Sortierung der Rollen neu setzen
       update bv_rolle
          set rol_sortierung = rol * 10
@@ -449,8 +451,7 @@ select rol_id, rol_name, rol_beschreibung, rol_aktiv, rol_sortierung
       end loop;
     end if;
   end klompexe_rollen_hierarchie;
-  
-  
-end bl_anw_pkg;
 
+
+end bl_anw_pkg;
 /

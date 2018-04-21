@@ -1,9 +1,5 @@
---------------------------------------------------------
---  DDL for Package UTILS
---------------------------------------------------------
-
-  CREATE OR REPLACE EDITIONABLE PACKAGE "UTILS" 
-authid definer
+create or replace package bv_utils 
+  authid definer
 as
   /* Hilfspackage fuer Uility-Funktionen */
 
@@ -43,6 +39,5 @@ as
     return char_table
     pipelined;
 
-end utils;
-
+end bv_utils;
 /

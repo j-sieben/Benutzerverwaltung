@@ -1,8 +1,4 @@
---------------------------------------------------------
---  DDL for Package UTL_APEX
---------------------------------------------------------
-
-  CREATE OR REPLACE EDITIONABLE PACKAGE "UTL_APEX" 
+create or replace PACKAGE "UTL_APEX"
   authid definer
 as
   /** Utility-Methoden zur Verwendung im Umfeld von APEX
@@ -17,7 +13,7 @@ as
   /** Prozedur zum Herunterladen eines BLOB ueber den Browser
    * %param p_blob BLOB-Instanz, die heruntergeladen werden soll
    * %param p_file_name Dateiname der Datei, die heruntergeladen werden soll
-   * %usage Wird verwendet, um eine BLOB-Instanz aus der Datenbank ueber den 
+   * %usage Wird verwendet, um eine BLOB-Instanz aus der Datenbank ueber den
    *        Browser auf einen Client-PC zu laden
    */
   procedure download_blob(
@@ -28,7 +24,7 @@ as
   /** Prozedur zum Herunterladen eines CLOB ueber den Browser
    * %param p_blob CLOB-Instanz, die heruntergeladen werden soll
    * %param p_file_name Dateiname der Datei, die heruntergeladen werden soll
-   * %usage Wird verwendet, um eine CLOB-Instanz aus der Datenbank ueber den 
+   * %usage Wird verwendet, um eine CLOB-Instanz aus der Datenbank ueber den
    *        Browser auf einen Client-PC zu laden
    */
   procedure download_clob(
@@ -40,24 +36,38 @@ as
    * %return PL/SQL-Tabelle mit den Elementwerten, Zugriff erfolgt ueber den
    *         Elementnamen
    * %usage Generisches Utility, um alle Werte der aktuellen Anwendungsseite
-   *        in eine Datenstruktur zu uebernehmen. Von hier aus koennen die 
+   *        in eine Datenstruktur zu uebernehmen. Von hier aus koennen die
    *        Werte entweder direkt verwendet oder typsicher auf einen lokalen
    *        Record verteilt werden.
    */
   function get_page_values
     return page_value_tab;
-    
-    
-  /* Methode zum Auslesen der aktuellen Zeile eines APEX interaktiven Grids
-   * %param p_static_id Statische ID des interaktiven Grids (IG). Optional, ist
-   *        nur erforderlich, wenn mehr als ein interaktives Grid auf der Seite
-   *        exisitiert
+
+
+  /* Methode zum Auslesen aller Elementwerte einer APEX-Anwendungsseite
+   * %param  p_row_type  Name der View oder Tablle, die den Typ des Records repraesentiert
    * %return Anonymer PL/SQL-Block, der eine OUT-Variable eines Records typsicher
    *         mit den Zeilenwerten fuellt
-   * %usage Generisches Utility, um alle Werte der aktuellen Zeile des IG
-   *        in eine Datenstruktur zu uebernehmen. Von hier aus koennen die 
-   *        Werte entweder direkt verwendet oder typsicher auf einen lokalen
-   *        Record verteilt werden.
+   * %usage  Generisches Utility, um alle Werte der aktuellen Anwendungsseite
+   *         in eine Datenstruktur zu uebernehmen. Von hier aus koennen die
+   *         Werte entweder direkt verwendet oder typsicher auf einen lokalen
+   *         Record verteilt werden.
+   */
+  function get_page_values(
+    p_row_type in varchar2)
+    return varchar2;
+
+
+  /* Methode zum Auslesen der aktuellen Zeile eines APEX interaktiven Grids
+   * %param  p_row_type   Name der View oder Tablle, die den Typ des Records repraesentiert
+   * %param [p_static_id] Statische ID des interaktiven Grids (IG). Optional, ist nur erforderlich, 
+   *                      wenn mehr als ein interaktives Grid auf der Seite exisitiert
+   * %return Anonymer PL/SQL-Block, der eine OUT-Variable eines Records typsicher
+   *         mit den Zeilenwerten fuellt
+   * %usage  Generisches Utility, um alle Werte der aktuellen Zeile des IG
+   *         in eine Datenstruktur zu uebernehmen. Von hier aus koennen die
+   *         Werte entweder direkt verwendet oder typsicher auf einen lokalen
+   *         Record verteilt werden.
    */
   function get_ig_values(
     p_row_type in varchar2,
@@ -76,7 +86,22 @@ as
     p_page_values in page_value_tab,
     p_element_name in varchar2)
     return varchar2;
-
+    
+  
+  /* Methode zum Pruefen einer Bedingung und zur Uebermittlung einer Fehlermeldung an
+   * die APEX-Oberflaeche
+   * %param  p_test Boolescher Ausdruck, der zu wahr evaluieren soll
+   * %param  p_affected_element Seitenelement, das geprueft wird. Falls NULL, wird die
+   *                            Meldung als Seitenfehler ausgegeben
+   * %param  p_message          Meldung, die ausgegeben wird, falls der Test misslingt
+   * %usage  Wird verwendet, um Pruefungen fuer Benutzereingaben vorzunehmen und im Fehlerfall
+   *         direkt eine Meldung an APEX auszugeben.
+   */
+  procedure assert(
+    p_test in boolean,
+    p_affected_element in varchar2,
+    p_message in varchar2);
+    
 
   /* Funktion zur Ermittlung des aktuellen Seitenpraefixes
    * %return Aktuelle Seitennummer der APEX-ANwenudng, als Praefix in der Form
@@ -122,7 +147,7 @@ as
   /* Methode zur Ermittlung des Authorisierungsstatus fuer eine Autorisierung
    * %param p_authorization_scheme Rolle, deren Zuordnung geprueft werden soll
    * %return Flag, das anzeigt, ob die Rolle erteilt wurde (1) oder nicht (0)
-   * %usage Wird verwendet, um als generische Loesung die ACL-Funktionalitaet 
+   * %usage Wird verwendet, um als generische Loesung die ACL-Funktionalitaet
    *        von APEX auszubauen
    */
   function get_authorization_status_for(
@@ -135,7 +160,7 @@ as
    * %param p_apex_user Name des APEX-Benutzers, fuer den eine Session erstellt werden soll
    * %param p_page_id Optionale Angabe einer Seitennummer, auf die sich die folgenden Eingaben
             beziehen sollen
-   * %usage Wird verwendet, um bei Tests von APEX-Komponenten keine Weboberflaeche verwenden 
+   * %usage Wird verwendet, um bei Tests von APEX-Komponenten keine Weboberflaeche verwenden
             zu muessen
    */
   procedure create_apex_session(
@@ -144,5 +169,4 @@ as
     p_page_id in apex_application_pages.page_id%type default 1);
 
 end;
-
 /

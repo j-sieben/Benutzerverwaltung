@@ -12,9 +12,13 @@ declare
             from all_objects
            where object_name in (
                  '', -- Typen
-                 'UI_SCT', -- Packages
-                 'UI_SCT_ACTION_TYPE', 'UI_SCT_EDIT_RULE', 'UI_SCT_LIST_ACTION_TYPE', 'UI_SCT_LIST_PAGE_ITEMS',
-                 'UI_SCT_LOV_PAGE_ITEMS', 'UI_SCT_MAIN_GROUPS', 'UI_SCT_MAIN_RULES', -- Views
+                 'UI_ADMIN_ANW_PKG', 'UI_ADMIN_ARF_PKG', 'UI_ADMIN_BEN_PKG', 'UI_ADMIN_ROL_PKG',
+                 'UTL_APEX', -- Packages
+                 'LOV_ANWENDUNG', 'LOV_ANWENDUNG_ADMIN', 'LOV_ANWENDUNG_ROLLE', 'LOV_BENUTZER',
+                 'LOV_ROLLE', 'LOV_SCHEMA', 'UI_ADMIN_AAR', 'UI_ADMIN_ANR',
+                 'UI_ADMIN_ANW', 'UI_ADMIN_ARF', 'UI_ADMIN_BEN_DETAIL', 'UI_ADMIN_BEN_MAIN',
+                 'UI_ADMIN_BEN_ROL_MAIN', 'UI_ADMIN_EINFACHE_ROL_SHUTTLE', 'UI_ADMIN_KLOMPLEXE_ROL_MAIN',
+                 'UI_ADMIN_REC', 'UI_ADMIN_ROL', 'UI_ADMIN_TIT', 'UI_BENUTZER_MAIN',-- Views
                  '',   -- Tabellen
                  '',  -- Synonyme
                  '' -- Sequenzen

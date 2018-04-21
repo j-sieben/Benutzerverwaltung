@@ -1,8 +1,4 @@
---------------------------------------------------------
---  DDL for Package BL_RECHT_PKG
---------------------------------------------------------
-
-  CREATE OR REPLACE EDITIONABLE PACKAGE "BL_RECHT_PKG" 
+create or replace PACKAGE "BL_RECHT_PKG"
   authid definer
 as
   /* Geschaeftslogik zur Verwaltung von Benutzerrechten.
@@ -34,85 +30,58 @@ as
     p_ben_telefon in bv_benutzer.ben_telefon%type);
 
 
-  /* Funktion zur Bestimmung, ob der aktuell angemeldete Benutzer ein
-   * Anwendungsrecht besitzt oder nicht.
-   * %param p_rec_id Anwendungsrecht
-   * %param p_anw_id Bezeichnung der Anwendung (optional, default: APP_ALIAS)
-   * %return true, falls der Benutzer das Recht besitzt, false ansonsten
-   * %raises Es werden keine Fehler geworfen, wird ein nicht vorhandenes
-   *         Recht geprueft, liefert die Funktion NULL
-   * %usage Die Funktion wird nicht direkt genutzt, sondern den APEX-Anwendungen
-   *        ueber das Wrapper-Package {%link BV_RECHT_PKG} zur Verfuegung gestellt.
-   */
-  function aktueller_benutzer_hat_recht(
-    p_rec_id in bv_recht.rec_id%type,
-    p_anw_id in bv_anwendung.anw_id%type default null)
-    return varchar2;
-
-
-  /* Funktion zur Bestimmung, welche Rolle der angemeldete Benutzer konkret
-   * zugewiesen bekommen hat. Liefert 'N', wenn die Rolle nicht direkt zugewiesen
-   * wurde, die zugewiesene Rolle die abgefragte Rolle aber beinhaltet.
-   * %param p_rec_id Anwendungsrecht
-   * %param p_anw_id Bezeichnung der Anwendung (optional, default: APP_ALIAS)
-   * %return true, falls der Benutzer diese Rolle zugewiesen bekam, false ansonsten
-   * %raises Es werden keine Fehler geworfen, wird ein nicht vorhandenes
-   *         Recht geprueft, liefert die Funktion NULL
-   * %usage Die Funktion wird nicht direkt genutzt, sondern den APEX-Anwendungen
-   *        ueber das Wrapper-Package {%link BV_RECHT_PKG} zur Verfuegung gestellt.
-   */
-  function aktueller_benutzer_ist(
-    p_rol_id in bv_rolle.rol_id%type,
-    p_anw_id in bv_anwendung.anw_id%type default null)
-    return varchar2;
-
-
   /* Funktion zur Bestimmung, ob ein zu uebergebender Benutzer ein
    * Anwendungsrecht besitzt oder nicht.
-   * %param p_ben_ad AD-(LDAP-)-Name des angemeldeten Benutzers (APP_USER)
-   * %param p_rec_id Anwendungsrecht
-   * %param p_anw_id Bezeichnung der Anwendung (optional, default: APP_ALIAS)
+   * %param  p_ben_ad  AD-(LDAP-)-Name des angemeldeten Benutzers (APP_USER)
+   * %param  p_rec_id  Anwendungsrecht
+   * %param  p_anw_id  Bezeichnung der Anwendung (optional, default: APP_ALIAS)
    * %raises Es werden keine Fehler geworfen, wird ein nicht vorhandenes
    *         Recht oder ein nicht vorhandener Benutzer geprueft,
    *         liefert die Funktion NULL
-   * %usage Die Funktion wird nicht direkt genutzt, sondern den APEX-Anwendungen
-   *        ueber das Wrapper-Package {%link BV_RECHT_PKG} zur Verfuegung gestellt.
+   * %usage  Die Funktion wird nicht direkt genutzt, sondern den APEX-Anwendungen
+   *         ueber das Wrapper-Package {%link BV_RECHT_PKG} zur Verfuegung gestellt.
    */
   function benutzer_hat_recht(
     p_ben_ad in bv_benutzer.ben_ad%type,
     p_rec_id in bv_recht.rec_id%type,
-    p_anw_id in bv_anwendung.anw_id%type default null)
-    return varchar2;
+    p_anw_id in bv_anwendung.anw_id%type)
+    return number;
 
 
   /* Funktion zur Bestimmung, welche Rolle ein zu uebergebender Benutzer konkret
    * zugewiesen bekommen hat. Liefert 'N', wenn die Rolle nicht direkt zugewiesen
    * wurde, die zugewiesene Rolle die abgefragte Rolle aber beinhaltet.
-   * %param p_rec_id Anwendungsrecht
-   * %param p_anw_id Bezeichnung der Anwendung (optional, default: APP_ALIAS)
+   * %param  p_ben_ad  AD-(LDAP-)-Name des angemeldeten Benutzers (APP_USER)
+   * %param  p_rec_id  Anwendungsrecht
+   * %param  p_anw_id  Bezeichnung der Anwendung (optional, default: APP_ALIAS)
    * %return true, falls der Benutzer diese Rolle zugewiesen bekam, false ansonsten
    * %raises Es werden keine Fehler geworfen, wird ein nicht vorhandenes
    *         Recht geprueft, liefert die Funktion NULL
-   * %usage Die Funktion wird nicht direkt genutzt, sondern den APEX-Anwendungen
-   *        ueber das Wrapper-Package {%link BV_RECHT_PKG} zur Verfuegung gestellt.
+   * %usage  Die Funktion wird nicht direkt genutzt, sondern den APEX-Anwendungen
+   *         ueber das Wrapper-Package {%link BV_RECHT_PKG} zur Verfuegung gestellt.
    */
   function benutzer_ist(
     p_ben_ad in bv_benutzer.ben_ad%type,
     p_rol_id in bv_rolle.rol_id%type,
-    p_anw_id in bv_anwendung.anw_id%type default null)
-    return varchar2;
+    p_anw_id in bv_anwendung.anw_id%type)
+    return number;
 
 
   /* Funktion zur Ausgabe einer Tabelle von Anwendungsnamen, die durch den angemeldeten
    * Benutzer administriert werden
+   * %param  p_ben_ad  AD-(LDAP-)-Name des angemeldeten Benutzers (APP_USER)
+   * %param  p_anw_id  Bezeichnung der Anwendung (optional, default: APP_ALIAS)
    * %return Eine liste von Anwendungsnamen
    * %usage Die Funktion wird intern verwendet, um auf der APEX-Anwendung BV
    *        ein Auswahlmenue zu fuellen, das dem angemeldeten Benutzer eine Auswahl
    *        aller Anwendungen gibt, die durch ihn administriert werden duerfen.
    */
-  function get_admin_anw
+  function get_admin_anw(
+    p_ben_ad in bv_benutzer.ben_ad%type,
+    p_anw_id in bv_anwendung.anw_id%type)
     return char_table
     pipelined;
+    
 
   /* Prozedur zur Zuweisung eines Benutzerrechts an einen Benutzer
    * %param p_row Zeile der Tabelle {%link BV_BENUTZER_RECHT Tabelle der Benutzerrechte}
@@ -124,6 +93,7 @@ as
    */
   procedure recht_zuweisen(
     p_row bv_benutzer_recht%rowtype);
+    
 
   /* Prozedur zum Entziehen eines Benutzerrechts
    * %param p_ben_id Technische ID des Benutzers
@@ -177,7 +147,7 @@ as
     p_ben_id bv_benutzer.ben_id%type,
     p_rol_id bv_rolle.rol_id%type,
     p_anw_id bv_anwendung.anw_id%type);
-    
+
   procedure rolle_entziehen(
     p_row bv_benutzer_rolle%rowtype);
 
@@ -189,5 +159,4 @@ as
   procedure refresh_mv;
 
 end bl_recht_pkg;
-
 /

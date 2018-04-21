@@ -1,16 +1,23 @@
 declare
-  l_is_installed pls_integer;
+  cursor missing_object_cur is  
+    select object_name, count(*)
+      from all_objects
+     where owner = '&INSTALL_USER.'
+       and object_type in ('PACKAGE', 'SYNONYM')
+       and object_name in ('')
+     group by object_name
+    having count(*) = 0;
+  l_msg varchar2(200) := '&s1.Installation prerequisites checked succesfully.';
+  l_has_errors boolean := false;
 begin
-  select count(*)
-    into l_is_installed
-	  from all_objects
-   where owner = '&INSTALL_USER.'
-     and object_type in ('PACKAGE', 'SYNONYM')
-	   and object_name in ('PIT');
-  if l_is_installed < 1 then
-    raise_application_error(-20000, 'Installation of PIT is required to install SCT. PIT is available at GitHub');
-  else
-    dbms_output.put_line('&s1.Installation prerequisites checked succesfully.');
+  for obj in missing_object_cur loop 
+    l_has_errors := true;
+    l_msg := 'Installation of ' || obj.object_name || ' is required to install BV. It is available on GitHub.';
+    dbms_output.put_line(l_msg);
+  end loop;
+  if l_has_errors then
+    raise_application_error(-20000, 'Required objects missing, installation aborted.');
   end if;
+  dbms_output.put_line(l_msg);
 end;
 /
