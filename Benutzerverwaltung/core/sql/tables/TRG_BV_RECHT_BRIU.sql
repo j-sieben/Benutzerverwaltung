@@ -12,7 +12,7 @@ begin
    * - REC_AKTIV auf N setzen, falls NULL (Anwendung interpretiert NULL as N)<br>
    */
   :new.rec_id := upper(dbms_assert.simple_sql_name(:new.rec_id));
-  :new.rec_aktiv := nvl(upper(:new.rec_aktiv), 'N');
+  :new.rec_aktiv := coalesce(upper(:new.rec_aktiv), 'N');
 end;
 /
 ALTER TRIGGER "TRG_BV_RECHT_BRIU" ENABLE;

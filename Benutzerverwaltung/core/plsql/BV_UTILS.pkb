@@ -1,9 +1,5 @@
---------------------------------------------------------
---  DDL for Package Body UTILS
---------------------------------------------------------
-
-  CREATE OR REPLACE EDITIONABLE PACKAGE BODY "UTILS" as
-
+create or replace package body bv_utils
+as
   procedure submit_job(
     p_action in varchar2)
   as
@@ -41,6 +37,5 @@
     end loop;
   end string_to_table;
 
-end utils;
-
+end bv_utils;
 /

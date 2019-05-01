@@ -1,25 +1,14 @@
---------------------------------------------------------
---  DDL for Package Body UI_ADMIN_ROL_PKG
---------------------------------------------------------
-
-  CREATE OR REPLACE EDITIONABLE PACKAGE BODY "UI_ADMIN_ROL_PKG" 
+create or replace package body ui_admin_rol_pkg 
 as
 
   /* Konstanten */
-  c_pkg constant varchar2(30) := $$PLSQL_UNIT;
+  c_pkg constant varchar2(30) := $$plsql_unit;
+  c_hierarchie_einfach constant bv_anwendung_art.aar_id%type := 'HIERARCHIE_EINFACH';
+  c_hierarchie_komplex constant bv_anwendung_art.aar_id%type := 'HIERARCHIE_KOMPLEX';
+  c_rolle constant varchar2(30 byte) := 'BV_ROLLE';
   
   /* Package-Variablen */
-  g_row bv_rolle%rowtype;  
-  
-  procedure copy_values
-  as
-  begin
-    execute immediate utl_apex.get_ig_values('bv_rolle') using out g_row;
-    -- Anwendungs-ID aus Sessionstatus umkopieren
-    g_row.rol_anw_id := v('P55_ROL_ANW_ID');
-    apex_util.set_session_state('ROL_ANW_ID', g_row.rol_anw_id);
-  end copy_values;
-   
+  g_row bv_rolle%rowtype;    
 
   /* Hilfsfunktionen */
   
@@ -31,16 +20,14 @@ as
     l_anw_id bv_anwendung.anw_id%type := v('P55_ROL_ANW_ID');
     l_url varchar2(1000);
   begin
-      with params as(
-           select 'f?p=' || v('APP_ALIAS') || ':#PAGE#:' || v('SESSION') || '::::P#PAGE_NO#_ANW_ID:' || l_anw_id url
-             from dual)
-    select /*+ NO_MERGE (p) */ case anw_aar_id
-           when 'HIERARCHIE_EINFACH' then apex_util.prepare_url(replace(replace(p.url, '#PAGE#', 'ADMIN_EINFACHE_ROL'), '#PAGE_NO#', '56'))
-           when 'HIERARCHIE_KOMPLEX' then apex_util.prepare_url(replace(replace(p.url, '#PAGE#', 'ADMIN_KOMPLEXE_ROL'), '#PAGE_NO#', '57'))
+    l_url := 'f?p=' || v('APP_ALIAS') || ':#PAGE#:' || v('SESSION') || '::::P#PAGE_NO#_ANW_ID:' || l_anw_id;
+    
+    select case anw_aar_id
+           when c_hierarchie_einfach then apex_util.prepare_url(replace(replace(l_url, '#PAGE#', 'ADMIN_EINFACHE_ROL'), '#PAGE_NO#', '56'))
+           when c_hierarchie_komplex then apex_util.prepare_url(replace(replace(l_url, '#PAGE#', 'ADMIN_KOMPLEXE_ROL'), '#PAGE_NO#', '57'))
            else null end
       into l_url
       from bv_anwendung
-     cross join params p
      where anw_id = l_anw_id;
     
     return l_url;
@@ -57,7 +44,7 @@ as
   procedure handle_admin_rol
   as
   begin
-    copy_values;
+    execute immediate utl_apex.get_ig_values(c_rolle) using out g_row;
     case 
     when utl_apex.inserting then
       bl_anw_pkg.merge_rolle(g_row);
@@ -66,7 +53,7 @@ as
     when utl_apex.deleting then
       bl_anw_pkg.delete_rolle(g_row);
     else
-      raise_application_error(-20000, 'Unknown REQUEST: ' || v('REQUEST'));
+      raise_application_error(-20000, apex_lang.message('UNKNOWN_REQUEST', v('REQUEST')));
     end case;
   end handle_admin_rol;
   

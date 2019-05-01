@@ -14,8 +14,8 @@ begin
    * - ANW_SCHEMA muss vorhandener Schemaname sein.<br>
    */
   :new.anw_id := upper(dbms_assert.simple_sql_name(:new.anw_id));
-  :new.anw_aktiv := nvl(upper(:new.anw_aktiv), 'N');
-  :new.anw_apex_alias := nvl(:new.anw_apex_alias, :new.anw_id);
+  :new.anw_aktiv := coalesce(upper(:new.anw_aktiv), 'N');
+  :new.anw_apex_alias := coalesce(:new.anw_apex_alias, :new.anw_id);
   :new.anw_schema := upper(dbms_assert.schema_name(:new.anw_schema));
 exception
   when no_data_found then

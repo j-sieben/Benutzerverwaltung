@@ -12,7 +12,7 @@ begin
    * - AAR_AKTIV auf N setzen, falls NULL (Anwendung interpretiert NULL as N)<br>
    */
   :new.aar_id := upper(dbms_assert.simple_sql_name(:new.aar_id));
-  :new.aar_aktiv := nvl(upper(:new.aar_aktiv), 'N');
+  :new.aar_aktiv := coalesce(upper(:new.aar_aktiv), 'N');
 end;
 /
 ALTER TRIGGER "TRG_BV_ANWENDUNG_ART_BRIU" ENABLE;

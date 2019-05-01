@@ -12,7 +12,7 @@ begin
    * - ANR_AKTIV auf N setzen, falls NULL (Anwendung interpretiert NULL as N)<br>
    */
   :new.anr_id := upper(dbms_assert.simple_sql_name(:new.anr_id));
-  :new.anr_aktiv := nvl(upper(:new.anr_aktiv), 'N');
+  :new.anr_aktiv := coalesce(upper(:new.anr_aktiv), 'N');
 end;
 /
 ALTER TRIGGER "TRG_BV_ANREDE_BRIU" ENABLE;

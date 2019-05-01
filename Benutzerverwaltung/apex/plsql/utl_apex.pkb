@@ -1,8 +1,4 @@
---------------------------------------------------------
---  DDL for Package Body UTL_APEX
---------------------------------------------------------
-
-  CREATE OR REPLACE EDITIONABLE PACKAGE BODY "UTL_APEX" 
+create or replace PACKAGE BODY "UTL_APEX"
 as
 
   c_pkg constant varchar2(30 byte) := $$PLSQL_UNIT;
@@ -98,7 +94,60 @@ as
     end loop;
     return l_page_values;
   end get_page_values;
-  
+
+
+  function get_page_values(
+    p_row_type in varchar2)
+    return varchar2
+  as
+   cursor item_cur(p_row_type in varchar2) is
+        with params as (
+             select upper(p_row_type) table_name,
+                    v('APP_ID') application_id,
+                    v('APP_PAGE_ID') page_id,
+                    'P' || v('APP_PAGE_ID') || '_' page_prefix
+               from dual)
+      select /*+ NO_MERGE /p) */
+             item_name, c.column_name, c.data_type,
+             case c.data_type
+             when 'DATE' then replace(replace(q'^to_date(v('#ITEM_NAME#'), '#FORMAT_MASK#')^',
+                                '#ITEM_NAME#', i.item_name),
+                                '#FORMAT_MASK#', coalesce(i.format_mask, a.date_format))
+             when 'NUMBER' then replace(replace(q'^to_number(v('#ITEM_NAME#'), '#FORMAT_MASK#')^',
+                                  '#ITEM_NAME#', i.item_name),
+                                  '#FORMAT_MASK#', coalesce(replace(i.format_mask, 'G'), 'fm9999999999999999999D999999'))
+             else replace(q'^v('#ITEM_NAME#')^', '#ITEM_NAME#', i.item_name) end item_value
+        from apex_application_page_items i
+        join params p
+          on i.application_id = p.application_id
+         and i.page_id = p.page_id
+        join apex_applications a
+          on i.application_id = a.application_id
+        join user_tab_columns c
+          on replace(i.item_name, p.page_prefix) = c.column_name
+         and c.table_name = p.table_name;
+    c_cr constant varchar2(1) := chr(10);
+    c_stmt_template constant varchar2(100) := 
+      q'^declare#CR#  g_row #ROWTYPE#%rowtype;#CR#begin#CR##COLUMNS##CR#  :x := g_row;#CR#end;^';
+    c_column_template constant varchar2(100) := 
+      q'^  g_row.#COLUMN_NAME# := #ITEM_VALUE#;#CR#^';
+    l_stmt varchar2(32767);
+    l_columns varchar2(32767);
+  begin
+    for itm in item_cur(p_row_type) loop
+      l_columns := l_columns 
+                || replace(replace(replace(c_column_template,
+                     '#COLUMN_NAME#', itm.column_name),
+                     '#ITEM_VALUE#', itm.item_value),
+                     '#CR#', c_cr);
+    end loop;
+    l_stmt := replace(replace(replace(c_stmt_template,
+                '#ROWTYPE#', p_row_type),
+                '#COLUMNS#', l_columns),
+                '#CR#', c_cr);
+    return l_stmt;
+  end get_page_values;
+
 
   function get_ig_values(
     p_row_type in varchar2,
@@ -112,7 +161,7 @@ as
                from dual)
       select /*+ NO_MERGE (p) */
              '  g_row.' || name || ' := ' ||
-             case data_type 
+             case data_type
              when 'DATE' then 'to_date(v(''' || name || '''), ''' || coalesce(format_mask, a.date_format) || ''');'
              when 'NUMBER' then 'to_number(v(''' || name || ''')' || nvl2(format_mask, ', ''' || format_mask || ''');', ');')
              else 'v(''' || name || ''');' end value_string
@@ -139,6 +188,21 @@ begin
     l_result := l_result || '  :x := g_row;' || chr(13) || 'end;';
     return l_result;
   end get_ig_values;
+  
+    
+  procedure assert(
+    p_test in boolean,
+    p_affected_element in varchar2,
+    p_message in varchar2)
+  as
+  begin
+    if not p_test then
+      apex_error.add_error(
+        p_message => p_message,
+        p_display_location => apex_error.c_inline_with_field_and_notif,
+        p_page_item_name => p_affected_element);
+    end if;
+  end assert;
 
 
   function get_page
@@ -162,8 +226,8 @@ begin
       raise_application_error(-20000, 'Element ' || p_element_name || ' existiert nicht auf der APEX-Seite');
       --pit.stop(msg.UTL_APEX_ITEM_MISSING, msg_args(p_element_name, v('APP_ID')));
   end get_value;
-  
-  
+
+
   function get_request
     return varchar2
   as
@@ -216,12 +280,12 @@ begin
                           p_string => p_value_item,
                           p_separator => ',');
     for i in l_value_item_tab.first .. l_value_item_tab.last loop
-      if i > 1 then 
+      if i > 1 then
         l_param_values := l_param_values || ',';
       end if;
       l_param_values := l_param_values || v(l_value_item_tab(i));
     end loop;
-    l_url := replace(replace(replace(c_url_template, 
+    l_url := replace(replace(replace(c_url_template,
                  '#UTL_TEMPLATE#', p_url_template),
                  '#PARAMS#', p_value_item),
                  '#PARAM_VALUES#', l_param_values);
@@ -279,5 +343,4 @@ begin
   end create_apex_session;
 
 end;
-
 /

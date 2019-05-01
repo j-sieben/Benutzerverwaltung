@@ -4,23 +4,31 @@ as
   c_pkg constant varchar2(30) := $$PLSQL_UNIT;
   c_date_format constant varchar2(30) := 'dd.mm.yyyy';
   
-  g_row bv_benutzer_rolle%rowtype;  
+  c_benutzer constant varchar2(30 byte) := 'BV_BENUTZER';
+  c_benutzer_rolle constant varchar2(30 byte) := 'BV_BENUTZER_ROLLE';
   
-  procedure copy_values
-  as
-  begin
-    execute immediate utl_apex.get_ig_values('bv_benutzer_rolle') using out g_row;
-    -- Benutzer-ID aus Sessionstate kopieren
-    g_row.bro_ben_id := v('P10_BEN_ID');
-    apex_util.set_session_state('BRO_BEN_ID', g_row.bro_ben_id);
-  end copy_values;
+  g_ben_row bv_benutzer%rowtype;
+  g_bro_row bv_benutzer_rolle%rowtype;    
   
   
   function validate_admin_ben
     return boolean
   as
   begin
-    copy_values;
+    execute immediate utl_apex.get_page_values(c_benutzer) using out g_ben_row;
+    -- Validierung der Anwendungsseite
+    utl_apex.assert(
+      p_test => g_ben_row.ben_email is not null, 
+      p_affected_element => utl_apex.get_page || 'BEN_EMAIL', 
+      p_message => apex_lang.message('EMAIL_TO_MISSING'));
+    utl_apex.assert(
+      p_test => g_ben_row.ben_nachname is not null, 
+      p_affected_element => utl_apex.get_page || 'BEN_NACHNAME', 
+      p_message => apex_lang.message('LASTNAME_MISSING'));
+    utl_apex.assert(
+      p_test => g_ben_row.ben_aktiv_bis is not null, 
+      p_affected_element => utl_apex.get_page || 'AKTIV_BIS', 
+      p_message => apex_lang.message('VALID_TO_MISSING', 'der Benutzer'));
     return true;
   end validate_admin_ben;
   
@@ -28,18 +36,34 @@ as
   procedure handle_admin_ben
   as
   begin
-    copy_values;
     case
     when utl_apex.inserting then
-     bl_recht_pkg.rolle_zuweisen(g_row);
+      bl_ben_pkg.benutzer_anlegen(g_ben_row);
     when utl_apex.updating then
-      bl_recht_pkg.rolle_aktualisieren(g_row);
+      bl_ben_pkg.benutzer_bearbeiten(g_ben_row);
     when utl_apex.deleting then
-      bl_recht_pkg.rolle_entziehen(g_row);
+      bl_ben_pkg.benutzer_loeschen(g_ben_row.ben_id);
     else
       null;
     end case;  
   end handle_admin_ben;
+  
+  
+  procedure handle_admin_ben_ig
+  as
+  begin
+    execute immediate utl_apex.get_ig_values(c_benutzer_rolle) using out g_bro_row;
+    case
+    when utl_apex.inserting then
+      bl_recht_pkg.rolle_zuweisen(g_bro_row);
+    when utl_apex.updating then
+      bl_recht_pkg.rolle_aktualisieren(g_bro_row);
+    when utl_apex.deleting then
+      bl_recht_pkg.rolle_entziehen(g_bro_row);
+    else
+      null;
+    end case;  
+  end handle_admin_ben_ig;
 
 end ui_admin_ben_pkg;
 /

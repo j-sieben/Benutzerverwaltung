@@ -40,7 +40,7 @@ as
    *        {*} Anwendungsname (ANW_NAME)
    *        {*} Anwednungsbeschreibung (ANW_BESCHREIBUNG)
    *        {*} Aktivitaetsflag (ANW_AKTIV)
-   *        {*} Sortierung&nbsp;der&nbsp;Anwendung (ANW_SORTIERUNG)
+   *        {*} Sortierung der Anwendung (ANW_SORTIERUNG)
    */
   procedure alter_anwendung(
     p_row bv_anwendung%rowtype);
