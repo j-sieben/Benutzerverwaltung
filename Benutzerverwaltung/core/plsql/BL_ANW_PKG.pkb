@@ -42,7 +42,7 @@
   end cast_to_recht;
   
 
-  /* INTEFACE */
+  /* INTERFACE */
   procedure create_anwendung(
     p_row in bv_anwendung%rowtype)
   as

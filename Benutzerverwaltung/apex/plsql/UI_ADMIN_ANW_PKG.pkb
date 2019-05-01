@@ -5,19 +5,21 @@
   CREATE OR REPLACE EDITIONABLE PACKAGE BODY "UI_ADMIN_ANW_PKG" 
 as
 
+  g_page_values utl_apex.page_value_tab;
   g_row bv_anwendung%rowtype;  
   
   procedure copy_values
   as
   begin
-    g_row.anw_id := v('ANW_ID');
-    g_row.anw_apex_alias := v('ANW_APEX_ALIAS');
-    g_row.anw_schema := v('ANW_SCHEMA');
-    g_row.anw_aar_id := v('ANW_AAR_ID');
-    g_row.anw_name := v('ANW_NAME');
-    g_row.anw_beschreibung := v('ANW_BESCHREIBUNG');
-    g_row.anw_aktiv := v('ANW_AKTIV');
-    g_row.anw_sortierung := v('ANW_SORTIERUNG');
+    g_page_values := utl_apex.get_page_values;
+    g_row.anw_id := upper(dbms_assert.simple_sql_name(utl_apex.get_value(g_page_values, 'ANW_ID')));
+    g_row.anw_apex_alias := coalesce(upper(utl_apex.get_value(g_page_values, 'ANW_APEX_ALIAS')), g_row.anwe_id);
+    g_row.anw_schema := upper(dbms_assert.schema_name(utl_apex.get_value(g_page_values, 'ANW_SCHEMA')));
+    g_row.anw_aar_id := utl_apex.get_value(g_page_values, 'ANW_AAR_ID');
+    g_row.anw_name := utl_apex.get_value(g_page_values, 'ANW_NAME');
+    g_row.anw_beschreibung := utl_apex.get_value(g_page_values, 'ANW_BESCHREIBUNG');
+    g_row.anw_aktiv := coalesce(utl_apex.get_value(g_page_values, 'ANW_AKTIV'), 'N');
+    g_row.anw_sortierung := utl_apex.get_value(g_page_values, 'ANW_SORTIERUNG');
   end copy_values;
   
   

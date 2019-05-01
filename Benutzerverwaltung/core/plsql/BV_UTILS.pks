@@ -20,22 +20,22 @@ as
     p_action in varchar2);
 
   /* Funktion zur Umwandlung einer Zeichenkette in eine Tabelle von Werten
-   * %param p_string Zeichenkette, die entlang von p_delimiter getrennt werden soll
-   * %param p_delimiter Zeichen, das als Trennzeichen fuer eine Liste von Werten
-   *        verwendet werden soll. Default ":", es sind aber auch mehrere Zeichen
-   *        moeglich, etwa ", " (Komma und Leerzeichen), die dann allerdings
-   *        gemeinsam als Trennzeichen verwendet werden und nicht alternativ.
+   * %param  p_string     Zeichenkette, die entlang von p_delimiter getrennt werden soll
+   * %param [p_delimiter] Zeichen, das als Trennzeichen fuer eine Liste von Werten
+   *                      verwendet werden soll.
+   *                      Default ":", es sind aber auch mehrere Zeichen
+   *                      moeglich, etwa ", " (Komma und Leerzeichen)
    * %return Varchar2(4000), als Zeilen der Objekttabelle char_table.
-   * %usage Die Funktion wird als Tabellenfunktion innerhalb einer SQL-Anweisung
-   *        aufgerufen, um eine Liste von Werten innerhalb der Anweisung als
-   *        Tabelle zu interpretieren.<br>
-   *        Beispiel:
-   *        <code>
-   *select column_value
-   *  from table(utils.string_to_table('A:B:C');
-   *        </code>
-   *        liefert die Werte A, B und C als Zeilen einer Tabelle mit dem
-   *        Spaltenbezeichner COLUMN_VALUE.
+   * %usage  Die Funktion wird als Tabellenfunktion innerhalb einer SQL-Anweisung
+   *         aufgerufen, um eine Liste von Werten innerhalb der Anweisung als
+   *         Tabelle zu interpretieren.<br>
+   *         Beispiel:
+   *         <code>
+   *           select column_value
+   *             from table(utils.string_to_table('A:B:C');
+   *         </code>
+   *         liefert die Werte A, B und C als Zeilen einer Tabelle mit dem
+   *         Spaltenbezeichner COLUMN_VALUE.
    */
   function string_to_table(
     p_string in varchar2,

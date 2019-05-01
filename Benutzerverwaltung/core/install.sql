@@ -16,8 +16,8 @@ prompt &h3.Setting compile flags
 
 
 prompt &h3.Create sequences
-prompt &s1.Create sequence SCT_SEQ
-@&seq_dir.sct_seq.seq
+prompt &s1.Create sequence BV_SEQ
+@&seq_dir.bv_seq.seq
 
 prompt &h3.Create tables and initial data
 prompt &s1.Create table SCT_RULE_GROUP

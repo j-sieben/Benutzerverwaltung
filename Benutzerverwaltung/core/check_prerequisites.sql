@@ -6,7 +6,7 @@ begin
 	  from all_objects
    where owner = '&INSTALL_USER.'
      and object_type in ('PACKAGE', 'SYNONYM')
-	   and object_name in ('PIT');
+	   and object_name in ('PIT', '');
   if l_is_installed < 1 then
     raise_application_error(-20000, 'Installation of PIT is required to install SCT. PIT is available at GitHub');
   else
