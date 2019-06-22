@@ -20,7 +20,7 @@ declare
                  'BV_BENUTZER_RECHT', 'BV_BENUTZER_RECHTE', 'BV_BENUTZER_ROLLE',
                  'BV_RECHT', 'BV_ROLLE', 'BV_ROLLE_RECHT', 'BV_ROLLE_ROLLE', 'BV_TITEL', -- Tabellen
                  '',  -- Synonyme
-                 'BV_BENUTZER_SEQ', -- Sequenzen
+                 'BV_SEQ', -- Sequenzen
                  'BV_BENUTZER_RECHTE' -- Materialized View
                  )
              and object_type not like '%BODY'
