@@ -20,6 +20,10 @@ prompt &h3.Create sequences
 prompt &s1.Create sequence BV_SEQ
 @&seq_dir.bv_seq.seq
 
+prompt &h3.Install Types
+@&type_dir.install_types.sql
+
+
 prompt &h3.Install Tables
 @&table_dir.install_tables.sql
 

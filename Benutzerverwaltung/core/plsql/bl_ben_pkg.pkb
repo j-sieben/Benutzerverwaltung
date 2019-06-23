@@ -5,7 +5,7 @@ as
     p_ben_row in out nocopy bv_benutzer%rowtype)
   as
   begin
-    p_ben_row.ben_id := bv_benutzer_seq.nextval;
+    p_ben_row.ben_id := bv_seq.nextval;
     insert into bv_benutzer
     values p_ben_row;
   end benutzer_anlegen;
