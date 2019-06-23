@@ -12,7 +12,7 @@ declare
             from all_objects
            where object_name in (
                  '', -- Typen
-                 'BV_RECHT_PKG', 'BL_RECHT_PKG', 'BL_ANW_PKG', -- Packages
+                 'BV_RECHT_PKG', 'BL_RECHT_PKG', 'BL_ANW_PKG', 'BL_BEN_PKG', 'BV_UTILS', -- Packages
                  'BV_BV_BENUTZER', 'BV_BV_BENUTZER_RECHTE', 
                  'BV_BV_BENUTZER_ROLLE', 'BV_BV_RECHT', 'BV_BV_ROLLE', -- Views
                  'BV_ANREDE', 'BV_ANWENDUNG', 'BV_ANWENDUNG_ART',

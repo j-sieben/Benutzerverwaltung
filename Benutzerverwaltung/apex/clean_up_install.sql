@@ -17,7 +17,7 @@ declare
                  'LOV_ANWENDUNG', 'LOV_ANWENDUNG_ADMIN', 'LOV_ANWENDUNG_ROLLE', 'LOV_BENUTZER',
                  'LOV_ROLLE', 'LOV_SCHEMA', 'UI_ADMIN_AAR', 'UI_ADMIN_ANR',
                  'UI_ADMIN_ANW', 'UI_ADMIN_ARF', 'UI_ADMIN_BEN_DETAIL', 'UI_ADMIN_BEN_MAIN',
-                 'UI_ADMIN_BEN_ROL_MAIN', 'UI_ADMIN_EINFACHE_ROL_SHUTTLE', 'UI_ADMIN_KLOMPLEXE_ROL_MAIN',
+                 'UI_ADMIN_BEN_ROL_MAIN', 'UI_ADMIN_EINFACHE_ROL_SHUTTLE', 'UI_ADMIN_KOMPLEXE_ROL_MAIN',
                  'UI_ADMIN_REC', 'UI_ADMIN_ROL', 'UI_ADMIN_TIT', 'UI_BENUTZER_MAIN',-- Views
                  '',   -- Tabellen
                  '',  -- Synonyme
@@ -48,7 +48,7 @@ end;
 /
 
 
-prompt &h3.Checking whether app already exist.
+prompt &h3.Checking whether app still exists.
 
 declare
   l_app_id number;
