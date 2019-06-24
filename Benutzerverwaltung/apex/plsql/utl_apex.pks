@@ -35,10 +35,10 @@ as
   /* Methode zum Auslesen aller Elementwerte einer APEX-Anwendungsseite
    * %return PL/SQL-Tabelle mit den Elementwerten, Zugriff erfolgt ueber den
    *         Elementnamen
-   * %usage Generisches Utility, um alle Werte der aktuellen Anwendungsseite
-   *        in eine Datenstruktur zu uebernehmen. Von hier aus koennen die
-   *        Werte entweder direkt verwendet oder typsicher auf einen lokalen
-   *        Record verteilt werden.
+   * %usage  Generisches Utility, um alle Werte der aktuellen Anwendungsseite
+   *         in eine Datenstruktur zu uebernehmen. Von hier aus koennen die
+   *         Werte entweder direkt verwendet oder typsicher auf einen lokalen
+   *         Record verteilt werden.
    */
   function get_page_values
     return page_value_tab;
@@ -56,6 +56,21 @@ as
   function get_page_values(
     p_row_type in varchar2)
     return varchar2;
+
+
+  /* Methode zum Auslesen der aktuellen Zeile eines APEX interaktiven Grids
+   * %param [p_static_id] Statische ID des interaktiven Grids (IG). Optional, ist nur erforderlich, 
+   *                      wenn mehr als ein interaktives Grid auf der Seite exisitiert
+   * %return PL/SQL-Tabelle mit den Elementwerten, Zugriff erfolgt ueber den
+   *         Elementnamen
+   * %usage  Generisches Utility, um alle Werte der aktuellen Zeile des IG
+   *         in eine Datenstruktur zu uebernehmen. Von hier aus koennen die
+   *         Werte entweder direkt verwendet oder typsicher auf einen lokalen
+   *         Record verteilt werden.
+   */
+  function get_ig_values(
+    p_static_id in varchar2 default null)
+    return page_value_tab;
 
 
   /* Methode zum Auslesen der aktuellen Zeile eines APEX interaktiven Grids

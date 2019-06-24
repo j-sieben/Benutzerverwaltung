@@ -1,9 +1,6 @@
 create or replace PACKAGE BODY "UTL_APEX"
 as
 
-  c_pkg constant varchar2(30 byte) := $$PLSQL_UNIT;
-
-
   function clob_to_blob(
     p_clob in clob)
     return blob
@@ -14,7 +11,6 @@ as
     l_dest_offset   integer := 1;
     l_source_offset integer := 1;
   begin
-    --pit.enter_detailed('clob_to_blob', c_pkg);
 
     dbms_lob.createtemporary(l_blob, true, dbms_lob.call);
       dbms_lob.converttoblob (
@@ -28,7 +24,6 @@ as
         warning => l_warning
       );
 
-    --pit.leave_detailed;
     return l_blob;
   end clob_to_blob;
 
@@ -38,11 +33,6 @@ as
     p_file_name in varchar2)
   as
   begin
-    /*pit.enter_optional(
-      p_action => 'download_blob',
-      p_module => c_pkg,
-      p_params => msg_params(msg_param('p_file_name', p_file_name)));*/
-
     htp.init;
     owa_util.mime_header('application/octet-stream', FALSE, 'UTF-8');
     htp.p('Content-length: ' || dbms_lob.getlength(p_blob));
@@ -51,7 +41,6 @@ as
     wpg_docload.download_file(p_blob);
     apex_application.stop_apex_engine;
 
-    --pit.leave_optional;
   exception when others then
     htp.p('error: ' || sqlerrm);
     apex_application.stop_apex_engine;
@@ -65,15 +54,10 @@ as
   as
     l_blob blob;
   begin
-    /*pit.enter_optional(
-      p_action => 'download_clob',
-      p_module => c_pkg,
-      p_params => msg_params(msg_param('p_file_name', p_file_name)));*/
 
     l_blob := clob_to_blob(p_clob);
     download_blob(l_blob, p_file_name);
-
-    --pit.leave_optional;
+    
   end download_clob;
 
 
@@ -103,8 +87,8 @@ as
    cursor item_cur(p_row_type in varchar2) is
         with params as (
              select upper(p_row_type) table_name,
-                    v('APP_ID') application_id,
-                    v('APP_PAGE_ID') page_id,
+                    to_number(v('APP_ID')) application_id,
+                    to_number(v('APP_PAGE_ID')) page_id,
                     'P' || v('APP_PAGE_ID') || '_' page_prefix
                from dual)
       select /*+ NO_MERGE /p) */
@@ -147,6 +131,34 @@ as
                 '#CR#', c_cr);
     return l_stmt;
   end get_page_values;
+  
+  
+  function get_ig_values(
+    p_static_id in varchar2 default null)
+    return page_value_tab
+  as
+    cursor ig_columns(
+      p_app_id in varchar2,
+      p_page_id in varchar2,
+      p_static_id in varchar2) 
+    is
+      select name column_name
+        from apex_appl_page_ig_columns ig
+        join apex_application_page_regions r
+          on ig.region_id = r.region_id
+        join apex_applications a
+          on r.application_id = a.application_id
+       where ig.source_type_code = 'DB_COLUMN'
+         and ig.application_id = p_app_id
+         and ig.page_id = p_page_id
+         and (r.static_id = p_static_id or p_static_id is null);
+    l_page_values page_value_tab;
+  begin
+    for ig in ig_columns(v('APP_ID'), v('APP_PAGE_ID'), p_static_id) loop
+      l_page_values(ig.column_name) := v(ig.column_name);
+    end loop;
+    return l_page_values;
+  end get_ig_values;
 
 
   function get_ig_values(
@@ -156,8 +168,8 @@ as
   as
     cursor ig_columns(p_static_id in varchar2) is
         with params as(
-             select v('APP_ID') app_id,
-                    v('APP_PAGE_ID') page_id
+             select to_number(v('APP_ID')) app_id,
+                    to_number(v('APP_PAGE_ID')) page_id
                from dual)
       select /*+ NO_MERGE (p) */
              '  g_row.' || name || ' := ' ||
@@ -224,6 +236,7 @@ begin
   exception
     when no_data_found then
       raise_application_error(-20000, 'Element ' || p_element_name || ' existiert nicht auf der APEX-Seite');
+      return null;
       --pit.stop(msg.UTL_APEX_ITEM_MISSING, msg_args(p_element_name, v('APP_ID')));
   end get_value;
 

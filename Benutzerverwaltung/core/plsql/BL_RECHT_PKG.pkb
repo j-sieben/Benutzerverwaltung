@@ -94,14 +94,14 @@ as
     c_app_prefix constant varchar2(10) := 'APP_';
     cursor benutzer_rechte(
       p_ben_ad in bv_benutzer.ben_ad%type,
-      p_anw_id in bv_anwendung.anw_id%type) is
+      p_anw_id in bv_anwendung.anw_id%type) 
+    is
       select replace(rec_id, c_app_prefix) rec_id
         from bv_bv_benutzer_rechte
        where (ben_id = (select ben_id
                           from bv_benutzer
                          where upper(ben_ad) = p_ben_ad)
-          or bl_recht_pkg.benutzer_hat_recht(p_ben_ad, p_anw_id, c_super_admin) = c_true)
-         and rec_id like c_app_prefix || '%';
+          or bl_recht_pkg.benutzer_hat_recht(p_ben_ad, p_anw_id, c_super_admin) = c_true);
   begin
     for rec in benutzer_rechte(upper(p_ben_ad), p_anw_id) loop
       pipe row (rec.rec_id);

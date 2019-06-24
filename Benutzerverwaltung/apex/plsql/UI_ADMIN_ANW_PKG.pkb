@@ -11,7 +11,7 @@ as
   procedure copy_values
   as
   begin
-    g_page_values := utl_apex.get_page_values;
+    g_page_values := utl_apex.get_ig_values;
     g_row.anw_id := upper(dbms_assert.simple_sql_name(utl_apex.get_value(g_page_values, 'ANW_ID')));
     g_row.anw_apex_alias := coalesce(upper(utl_apex.get_value(g_page_values, 'ANW_APEX_ALIAS')), g_row.anw_id);
     g_row.anw_schema := upper(dbms_assert.schema_name(utl_apex.get_value(g_page_values, 'ANW_SCHEMA')));

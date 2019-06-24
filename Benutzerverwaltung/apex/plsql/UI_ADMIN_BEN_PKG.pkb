@@ -1,11 +1,10 @@
 create or replace package body ui_admin_ben_pkg 
 as
 
-  c_pkg constant varchar2(30) := $$PLSQL_UNIT;
   c_date_format constant varchar2(30) := 'dd.mm.yyyy';
   
   c_benutzer constant varchar2(30 byte) := 'BV_BENUTZER';
-  c_benutzer_rolle constant varchar2(30 byte) := 'BV_BENUTZER_ROLLE';
+  C_BENUTZER_ROLLE constant varchar2(30 byte) := 'BV_BENUTZER_ROLLE';
   
   g_ben_row bv_benutzer%rowtype;
   g_bro_row bv_benutzer_rolle%rowtype;    
@@ -52,7 +51,7 @@ as
   procedure handle_admin_ben_ig
   as
   begin
-    execute immediate utl_apex.get_ig_values(c_benutzer_rolle) using out g_bro_row;
+    execute immediate utl_apex.get_ig_values(p_row_type => C_BENUTZER_ROLLE) using out g_bro_row;
     case
     when utl_apex.inserting then
       bl_recht_pkg.rolle_zuweisen(g_bro_row);
