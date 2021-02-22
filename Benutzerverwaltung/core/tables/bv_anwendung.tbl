@@ -1,0 +1,26 @@
+create table bv_anwendung(
+  anw_id varchar2(20 char), 
+	anw_apex_alias varchar2(20 char), 
+	anw_schema varchar2(30 byte), 
+	anw_aar_id varchar2(20 char), 
+	anw_name varchar2(50 char), 
+	anw_beschreibung varchar2(200 char), 
+	anw_aktiv &FLAG_TYPE. default &C_TRUE., 
+	anw_sortierung number default 0, 
+	constraint bv_anwendung_pk primary key (anw_id),
+  constraint fk_anw_aar_id foreign key(anw_aar_id)
+    references bv_anwendung_art(aar_id),
+  constraint anw_aktiv_chk check (anw_aktiv in (&C_TRUE., &C_FALSE.))
+) organization index;
+
+create index idx_fk_anw_aar_id on bv_anwendung(anw_aar_id);
+
+comment on table bv_anwendung  is 'Liste der Anwendungen, fuer die eine Benutzerverwaltung durchgefuehrt wird.';
+comment on column bv_anwendung.anw_id is 'Primaerschluessel';
+comment on column bv_anwendung.anw_apex_alias is 'APEX-Alias fuer die Anwendung';
+comment on column bv_anwendung.anw_schema is 'Schemabenutzer der APEX-Anwendung, muss existierender Benutzer sein.';
+comment on column bv_anwendung.anw_aar_id is 'Art der Anwendung, Referenzu auf BV_ANWENDUNG_ART.';
+comment on column bv_anwendung.anw_name is 'Displayname zur Darstellung im Einblendmenue auf der Oberflaeche';
+comment on column bv_anwendung.anw_beschreibung is 'Optionale Kurzbeschreibung (zur Verwendung im Tooltip)';
+comment on column bv_anwendung.anw_aktiv is 'Flag, das anzeigt, ob der Eintrag aktuell verwendet werden soll';
+comment on column bv_anwendung.anw_sortierung is 'Sortierkrierium zur Anzeige auf der Oberflaeche';

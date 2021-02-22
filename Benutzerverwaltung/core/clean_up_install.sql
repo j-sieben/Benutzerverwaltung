@@ -7,12 +7,12 @@ declare
   pragma exception_init(sequence_does_not_exist, -2289);
   synonym_does_not_exist exception;
   pragma exception_init(synonym_does_not_exist, -1434);
-  cursor delete_object_cur is
+  cursor loesche_object_cur is
           select object_name name, object_type type
             from all_objects
            where object_name in (
                  '', -- Typen
-                 'BV_RECHT_PKG', 'BL_RECHT_PKG', 'BL_ANW_PKG', 'BL_BEN_PKG', 'BV_UTILS', -- Packages
+                 'BV_RECHT', 'BL_RECHT', 'BL_ANW', 'BL_BEN', 'BV_RECHT_PKG', 'BV_UTILS', -- Packages
                  'BV_BV_BENUTZER', 'BV_BV_BENUTZER_RECHTE', 
                  'BV_BV_BENUTZER_ROLLE', 'BV_BV_RECHT', 'BV_BV_ROLLE', -- Views
                  'BV_ANREDE', 'BV_ANWENDUNG', 'BV_ANWENDUNG_ART',
@@ -27,7 +27,7 @@ declare
              and owner = upper('&INSTALL_USER.')
            order by object_type, object_name;
 begin
-  for obj in delete_object_cur loop
+  for obj in loesche_object_cur loop
     begin
       execute immediate 'drop ' || obj.type || ' ' || obj.name ||
                         case obj.type 

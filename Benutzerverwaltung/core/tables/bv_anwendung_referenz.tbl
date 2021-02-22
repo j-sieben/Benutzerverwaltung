@@ -1,0 +1,15 @@
+create table bv_anwendung_referenz(
+  arf_anw_id varchar2(20 char), 
+	arf_referenz_anw_id varchar2(20 char),
+  constraint pk_bv_anwendung_referenz primary key (arf_anw_id, arf_referenz_anw_id),
+  constraint fk_arf_anw_id foreign key(arf_anw_id)
+    references bv_anwendung(anw_id) on delete cascade,
+  constraint fk_arf_referenz_anw_id foreign key(arf_referenz_anw_id)
+    references bv_anwendung(anw_id) on delete cascade
+) organization index;
+
+create index idx_fk_arf_referenz_anw_id on bv_anwendung_referenz(arf_referenz_anw_id, arf_anw_id);
+
+comment on table bv_anwendung_referenz  is 'Referenztabelle, die steuert, welche Anwendung welche Anwendungsrechte anderer Anwendung zeigen soll. Wird fuer Querverweise benoetigt';
+comment on column bv_anwendung_referenz.arf_anw_id is 'Primaerschluessel, Referenz auf BV_ANWENDUNG, Anwendung, die eine Referenz auf andere Anwendungen hat';
+comment on column bv_anwendung_referenz.arf_referenz_anw_id is 'Primaerschluessel, Referenz auf BV_ANWENDUNG, Anwendung, die aus einer Anwendungen referenziert wird';

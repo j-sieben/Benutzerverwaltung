@@ -1,0 +1,16 @@
+create table bv_anrede(	
+  anr_id varchar2(20 char), 
+	anr_name varchar2(50 char), 
+	anr_beschreibung varchar2(200 char), 
+	anr_aktiv &FLAG_TYPE. default &C_TRUE., 
+	anr_sortierung number(4,0) default 0, 
+  constraint bv_anrede_pk primary key (anr_id),
+  constraint anr_aktiv_chk check (anr_aktiv in (&C_TRUE., &C_FALSE.))
+) organization index;
+
+comment on table bv_anrede is 'Lookup-Tabelle fuer Anreden in Adressen.';
+comment on column bv_anrede.anr_id is 'Primaerschluessel';
+comment on column bv_anrede.anr_name is 'Displayname zur Darstellung im Einblendmenue auf der Oberflaeche';
+comment on column bv_anrede.anr_beschreibung is 'Optionale Kurzbeschreibung (zur Verwendung im Tooltip)';
+comment on column bv_anrede.anr_aktiv is 'Flag, das anzeigt, ob der Eintrag aktuell verwendet werden soll';
+comment on column bv_anrede.anr_sortierung is 'Sortierkrierium zur Anzeige auf der Oberflaeche';

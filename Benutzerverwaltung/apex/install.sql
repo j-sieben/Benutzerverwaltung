@@ -1,39 +1,45 @@
-define sql_dir=apex/sql/
-define seq_dir=&sql_dir.sequences/
-define table_dir=&sql_dir.tables/
-define type_dir=&sql_dir.types/
-define view_dir=&sql_dir.views/
-define plsql_dir=apex/plsql/
-define apex_dir=apex/apex/
-
-
-prompt &h3.Check installation prerquisites
-@apex/check_prerequisites.sql
+@init/set_folders apex
 
 prompt &h3.Remove existing installation
-@apex/clean_up_install.sql
-
-prompt &h3.Setting compile flags
-@apex/set_compile_flags.sql
-
-prompt &h3.CREATE SEQUENCES
-
-prompt &h3.CREATE TABLES
+@&install_dir.clean_up_install.sql
 
 prompt &h3.CREATE VIEWS
-@&view_dir.install_views.sql
+@&tool_dir.install_view bv_lov_anrede
+@&tool_dir.install_view bv_lov_anwendung
+@&tool_dir.install_view bv_lov_anwendung_admin
+@&tool_dir.install_view bv_lov_anwendung_art
+@&tool_dir.install_view bv_lov_anwendung_rolle
+@&tool_dir.install_view bv_lov_benutzer
+@&tool_dir.install_view bv_lov_rolle
+@&tool_dir.install_view bv_lov_schema
+@&tool_dir.install_view bv_lov_titel
+@&tool_dir.install_view bv_ui_admin_aar
+@&tool_dir.install_view bv_ui_admin_anr
+@&tool_dir.install_view bv_ui_admin_anw
+@&tool_dir.install_view bv_ui_admin_arf
+@&tool_dir.install_view bv_ui_edit_ben_rollen
+@&tool_dir.install_view bv_ui_admin_ben_main
+@&tool_dir.install_view bv_ui_admin_ben_rol_main
+@&tool_dir.install_view bv_ui_admin_einfache_rol_shuttle
+@&tool_dir.install_view bv_ui_admin_komplexe_rol_main
+@&tool_dir.install_view bv_ui_admin_rec
+@&tool_dir.install_view bv_ui_admin_rol
+@&tool_dir.install_view bv_ui_admin_tit
+@&tool_dir.install_view bv_ui_benutzer_main
 
 prompt &h3.Create PACKAGES
-@&plsql_dir.install_packages.sql
+@&tool_dir.install_package_spec bv_ui
 
+prompt &h3.Create PACKAGE BODIES
+@&tool_dir.install_package_body bv_ui
 
 prompt &h3.Load initial data
-@apex/initial_data.sql
+@&script_dir.initial_data.sql
 
 set serveroutput on
 prompt &h3.Install APEX application
 prompt &s1.Prepare APEX import
-@apex/prepare_apex_import.sql
+@&install_dir.prepare_apex_import.sql
 
 prompt &s1.Install application
 @&apex_dir.bv.sql

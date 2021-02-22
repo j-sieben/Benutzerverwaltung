@@ -1,0 +1,22 @@
+create table bv_recht(
+  rec_id varchar2(20 char), 
+	rec_anw_id varchar2(20 char), 
+	rec_name varchar2(50 char) constraint rec_name_nn check (rec_name is not null), 
+	rec_beschreibung varchar2(200 char), 
+	rec_aktiv &FLAG_TYPE. default &C_TRUE., 
+	rec_sortierung number default 0, 
+	constraint bv_recht_pk primary key (rec_id, rec_anw_id),
+  constraint fk_rec_anw_id foreign key(rec_anw_id)
+    references bv_anwendung(anw_id) on delete cascade,
+  constraint rec_aktiv_chk check (rec_aktiv in (&C_TRUE., &C_FALSE.))
+) organization index;
+
+create unique index idx_rec_anw_id_fk on bv_recht (rec_anw_id, rec_id);
+
+comment on table bv_recht  is 'Tabelle zur Deklaration von Anwendungsrechten.';
+comment on column bv_recht.rec_id is 'Primaerschluessel';
+comment on column bv_recht.rec_anw_id is 'Primaerschluessel, Referenz auf BV_ANWENDUNG';
+comment on column bv_recht.rec_name is 'Displayname zur Darstellung im Einblendmenue auf der Oberflaeche';
+comment on column bv_recht.rec_beschreibung is 'Optionale Kurzbeschreibung (zur Verwendung im Tooltip)';
+comment on column bv_recht.rec_aktiv is 'Flag, das anzeigt, ob der Eintrag aktuell verwendet werden soll';
+comment on column bv_recht.rec_sortierung is 'Sortierkrierium zur Anzeige auf der Oberflaeche';

@@ -1,0 +1,17 @@
+create table bv_benutzer_rolle(
+  bro_ben_id number, 
+	bro_rol_id varchar2(20 char), 
+	bro_anw_id varchar2(20 char), 
+	bro_gueltig_ab date default trunc(sysdate) constraint bro_gueltig_bis_nn not null, 
+	bro_gueltig_bis date default &MAX_DATE. constraint bro_gueltig_ab_nn not null, 
+	constraint bv_benutzer_rolle_pk primary key (bro_ben_id, bro_rol_id, bro_anw_id)
+) organization index;
+
+create index idx_bro_rol_id_fk on bv_benutzer_rolle (bro_rol_id, bro_anw_id, bro_ben_id);
+
+comment on table bv_benutzer_rolle  is 'Tabelle zur Zuweisung von Rechten auf Benutzer.';
+comment on column bv_benutzer_rolle.bro_ben_id is 'Primaerschluessel, Referenz auf BV_BENUTZER';
+comment on column bv_benutzer_rolle.bro_rol_id is 'Primaerschluessel, Referenz auf BV_ROLLE';
+comment on column bv_benutzer_rolle.bro_anw_id is 'Primaerschluessel, Referenz auf BV_ROLLE';
+comment on column bv_benutzer_rolle.bro_gueltig_ab is 'Festlegung eines Gueltigkeitszeitraums';
+comment on column bv_benutzer_rolle.bro_gueltig_bis is 'Festlegung eines Gueltigkeitszeitraums';

@@ -1,0 +1,17 @@
+create table bv_rolle_rolle(
+  rro_rol_id varchar2(20 char), 
+	rro_parent_rol_id varchar2(20 char), 
+	rro_anw_id varchar2(20 char), 
+	constraint bv_rolle_rolle_pk primary key (rro_rol_id, rro_parent_rol_id, rro_anw_id),
+  constraint fk_rro_anw_id foreign key(rro_rol_id, rro_anw_id)
+    references bv_rolle(rol_id, rol_anw_id),
+  constraint fk_rro_parent_rol_id foreign key(rro_parent_rol_id, rro_anw_id)
+    references bv_rolle(rol_id, rol_anw_id)
+) organization index;
+
+create index idx_rro_parent_id_fk on bv_rolle_rolle (rro_parent_rol_id, rro_anw_id, rro_rol_id);
+
+comment on table bv_rolle_rolle  is 'Selbstrefenz zur Darstellung hierarchischer Rollen';
+comment on column bv_rolle_rolle.rro_rol_id is 'Primaerschluessel, Referenz auf BV_ROLLE';
+comment on column bv_rolle_rolle.rro_parent_rol_id is 'Primaerschluessel, Referenz auf BV_ROLLE';
+comment on column bv_rolle_rolle.rro_anw_id is 'Primaerschluessel, Referenz auf BV_ROLLE';

@@ -1,0 +1,16 @@
+create table bv_titel(
+  tit_id varchar2(20 char), 
+	tit_name varchar2(50 char), 
+	tit_beschreibung varchar2(200 char), 
+	tit_aktiv &FLAG_TYPE. default &C_TRUE., 
+	tit_sortierung number(4,0) default 0, 
+	constraint bv_titel_pk primary key (tit_id),
+  constraint tit_aktiv_chk check(tit_aktiv in (&C_TRUE., &C_FALSE.))
+) organization index;
+
+comment on table bv_titel  is 'Lookup-Tabelle fuer akademische Titel in Adressen.';
+comment on column bv_titel.tit_id is 'Primaerschluessel';
+comment on column bv_titel.tit_name is 'Displayname zur Darstellung im Einblendmenue auf der Oberflaeche';
+comment on column bv_titel.tit_beschreibung is 'Optionale Kurzbeschreibung (zur Verwendung im Tooltip)';
+comment on column bv_titel.tit_aktiv is 'Flag, das anzeigt, ob der Eintrag aktuell verwendet werden soll';
+comment on column bv_titel.tit_sortierung is 'Sortierkrierium zur Anzeige auf der Oberflaeche';

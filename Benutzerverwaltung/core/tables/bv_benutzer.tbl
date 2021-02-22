@@ -1,0 +1,35 @@
+create table bv_benutzer(
+  ben_id number, 
+	ben_ad varchar2(200 char), 
+	ben_stz varchar2(20 char), 
+	ben_anr_id varchar2(20 char), 
+	ben_tit_id varchar2(20 char), 
+	ben_vorname varchar2(50 char), 
+	ben_nachname varchar2(50 char) constraint ben_nachname not null, 
+	ben_email varchar2(200 char) constraint ben_telefon not null, 
+	ben_telefon varchar2(50 char), 
+	ben_gueltig_ab date default trunc(sysdate) constraint ben_gueltig_ab_nn not null, 
+	ben_gueltig_bis date default &MAX_DATE. constraint ben_gueltig_bis_nn not null,
+  constraint bv_benutzer_pk primary key (ben_id),
+  constraint fk_ben_anr_id foreign key(ben_anr_id)
+    references bv_anrede(anr_id),
+  constraint fk_ben_tit_id foreign key(ben_tit_id)
+    references bv_anrede(anr_id)
+);
+
+create index idx_ben_ad_upper on bv_benutzer (upper(ben_ad));
+create index idx_fk_ben_anr_id on bv_benutzer (ben_anr_id);
+create index idx_fk_ben_tit_id on bv_benutzer (ben_tit_id);
+
+comment on table bv_benutzer  is 'Benutzertabelle';
+comment on column bv_benutzer.ben_id is 'Primaerschluessel';
+comment on column bv_benutzer.ben_ad is 'Active Directory DN';
+comment on column bv_benutzer.ben_stz is 'Stellenzeichen';
+comment on column bv_benutzer.ben_anr_id is 'Referenz auf BV_ANREDE';
+comment on column bv_benutzer.ben_tit_id is 'Referenz auf BV_TITEL';
+comment on column bv_benutzer.ben_vorname is 'Vorname des Benutzers';
+comment on column bv_benutzer.ben_nachname is 'Nachname des Benutzers';
+comment on column bv_benutzer.ben_email is 'EMail-Adresse des Benutzers';
+comment on column bv_benutzer.ben_telefon is 'Telefnonnumer des Benutzers';
+comment on column bv_benutzer.ben_gueltig_ab is 'Benutzer gueltig von';
+comment on column bv_benutzer.ben_gueltig_bis is 'Benutzer gueltig von';

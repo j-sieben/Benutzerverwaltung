@@ -7,18 +7,17 @@ declare
   pragma exception_init(sequence_does_not_exist, -2282);
   synonym_does_not_exist exception;
   pragma exception_init(synonym_does_not_exist, -1434);
-  cursor delete_object_cur is
+  cursor loesche_object_cur is
           select object_name name, object_type type
             from all_objects
            where object_name in (
                  '', -- Typen
-                 'UI_ADMIN_ANW_PKG', 'UI_ADMIN_ARF_PKG', 'UI_ADMIN_BEN_PKG', 'UI_ADMIN_ROL_PKG',
-                 'UTL_APEX', -- Packages
-                 'LOV_ANWENDUNG', 'LOV_ANWENDUNG_ADMIN', 'LOV_ANWENDUNG_ROLLE', 'LOV_BENUTZER',
-                 'LOV_ROLLE', 'LOV_SCHEMA', 'UI_ADMIN_AAR', 'UI_ADMIN_ANR',
-                 'UI_ADMIN_ANW', 'UI_ADMIN_ARF', 'UI_ADMIN_BEN_DETAIL', 'UI_ADMIN_BEN_MAIN',
-                 'UI_ADMIN_BEN_ROL_MAIN', 'UI_ADMIN_EINFACHE_ROL_SHUTTLE', 'UI_ADMIN_KOMPLEXE_ROL_MAIN',
-                 'UI_ADMIN_REC', 'UI_ADMIN_ROL', 'UI_ADMIN_TIT', 'UI_BENUTZER_MAIN',-- Views
+                 'BV_UI_ADMIN_ANW', 'BV_UI_ADMIN_ARF', 'BV_UI_ADMIN_BEN', 'BV_UI_ADMIN_ROL', -- Packages
+                 'BV_LOV_ANREDE', 'BV_LOV_ANWENDUNG', 'BV_LOV_ANWENDUNG_ART', 'BV_LOV_ANWENDUNG_ADMIN', 'BV_LOV_ANWENDUNG_ROLLE', 'BV_LOV_BENUTZER',
+                 'BV_LOV_ROLLE', 'BV_LOV_SCHEMA', 'BV_LOV_TITEL', 'BV_UI_ADMIN_AAR', 'BV_UI_ADMIN_ANR',
+                 'BV_UI_ADMIN_ANW', 'BV_UI_ADMIN_ARF', 'BV_UI_EDIT_BEN', 'BV_UI_EDIT_BEN_ROLLEN', 'BV_UI_ADMIN_BEN_MAIN',
+                 'BV_UI_ADMIN_BEN_ROL_MAIN', 'BV_UI_ADMIN_EINFACHE_ROL_SHUTTLE', 'BV_UI_ADMIN_KOMPLEXE_ROL_MAIN',
+                 'BV_UI_ADMIN_REC', 'BV_UI_ADMIN_ROL', 'BV_UI_ADMIN_TIT', 'BV_UI_BENUTZER_MAIN',-- Views
                  '',   -- Tabellen
                  '',  -- Synonyme
                  '' -- Sequenzen
@@ -27,7 +26,7 @@ declare
              and owner = upper('&INSTALL_USER.')
            order by object_type, object_name;
 begin
-  for obj in delete_object_cur loop
+  for obj in loesche_object_cur loop
     begin
       execute immediate 'drop ' || obj.type || ' ' || obj.name ||
                         case obj.type 

@@ -1,0 +1,50 @@
+create materialized view bv_benutzer_rechte (ben_id, ben_ad, anw_id, anw_apex_alias, rec_id)
+refresh complete on demand 
+start with sysdate+0 next trunc(sysdate) + interval '1 1' day to hour
+as
+  with rollen as(
+       select distinct target.rol_id, r.anw_id, r.rol_id target_rol_id
+         from ( select rro_rol_id rol_id, rro_anw_id anw_id, sys_connect_by_path(rro_rol_id, ':') || ':' pfad
+                  from bv_rolle_rolle rro
+                 start with rro_rol_id = rro_parent_rol_id
+               connect by nocycle prior rro_rol_id = rro_parent_rol_id and prior rro_anw_id = rro_anw_id
+                 order siblings by rro_rol_id) r
+         join bv_rolle target
+           on instr(pfad, ':' || target.rol_id || ':') > 0
+          and target.rol_anw_id = r.anw_id
+        where target.rol_aktiv = &C_TRUE.)
+select ben.ben_id,
+       ben.ben_ad,
+       anw.anw_id,
+       anw.anw_apex_alias,
+       rre.rre_rec_id rec_id
+  from bv_benutzer ben
+  join bv_benutzer_rolle bro on ben.ben_id = bro.bro_ben_id
+  join rollen rol on bro.bro_rol_id = rol.rol_id and bro.bro_anw_id = rol.anw_id
+  join bv_rolle_recht rre on rol.target_rol_id = rre.rre_rol_id and rol.anw_id = rre.rre_anw_id
+  join bv_anwendung anw on rol.anw_id = anw.anw_id
+ where sysdate between bro.bro_gueltig_ab and bro.bro_gueltig_bis
+   and sysdate between ben.ben_gueltig_ab and ben.ben_gueltig_bis
+ union -- UNION, um Dubletten (Recht per Rolle und per direktem Grant gewaehrt) zu unterdruecken
+select ben.ben_id,
+       ben.ben_ad,
+       anw.anw_id anw_id,
+       anw.anw_apex_alias,
+       bre.bre_rec_id rec_id
+  from bv_benutzer ben
+  join bv_benutzer_recht bre on ben.ben_id = bre.bre_ben_id
+  join bv_recht rec on bre.bre_rec_id = rec.rec_id and bre.bre_anw_id = rec.rec_anw_id
+  join bv_anwendung anw on rec_anw_id = anw.anw_id
+ where sysdate between bre.bre_gueltig_ab and bre.bre_gueltig_bis
+   and sysdate between ben.ben_gueltig_ab and ben.ben_gueltig_bis
+   and rec.rec_aktiv = &C_TRUE.;
+
+create index idx_bv_benutzer_rechte on bv_benutzer_rechte (ben_id, anw_id, rec_id);
+create index idx_bv_benutzer_rechte_app on bv_benutzer_rechte (ben_ad, anw_apex_alias, rec_id);
+
+comment on column bv_benutzer_rechte.ben_id is 'Benutzer-ID, Technischer Schluessel. Wird gebraucht fuer Joins.';
+comment on column bv_benutzer_rechte.ben_ad is 'AD-Name des Benutzers, wir als Filterkriterium verwendet';
+comment on column bv_benutzer_rechte.anw_id is 'Anwendungs-ID, wird gebraucht fuer Joins';
+comment on column bv_benutzer_rechte.anw_apex_alias is 'APEX-Alias der Anwendung, wir als Filterkriterium verwendet';
+comment on column bv_benutzer_rechte.rec_id is 'Recht, das der Benutzer haelt.';
+comment on materialized view bv_benutzer_rechte  is 'Materialisierte Sicht zur Integration der Rechte pro Benutzer';

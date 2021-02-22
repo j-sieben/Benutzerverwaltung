@@ -2,9 +2,8 @@ declare
   cursor missing_object_cur is  
     select object_name, count(*)
       from all_objects
-     where owner = '&INSTALL_USER.'
-       and object_type in ('PACKAGE', 'SYNONYM')
-       and object_name in ('')
+     where object_type in ('PACKAGE', 'SYNONYM')
+       and object_name in ('UTL_APEX', 'UTL_TEXT')
      group by object_name
     having count(*) = 0;
   l_msg varchar2(200) := '&s1.Installation prerequisites checked succesfully.';
