@@ -4,7 +4,7 @@ select tit_id,
        tit_beschreibung,
        tit_aktiv,
        tit_sortierung
-  from bv_titel;
+  from dl_bv_titel;
 
 comment on column  bv_ui_admin_tit.tit_id is 'Primaerschluessel';
 comment on column  bv_ui_admin_tit.tit_name is 'Displayname zur Darstellung im Einblendmenue auf der Oberflaeche';

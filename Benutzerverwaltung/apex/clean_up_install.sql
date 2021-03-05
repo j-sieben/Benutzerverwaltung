@@ -12,14 +12,15 @@ declare
             from all_objects
            where object_name in (
                  '', -- Typen
-                 'BV_UI_ADMIN_ANW', 'BV_UI_ADMIN_ARF', 'BV_UI_ADMIN_BEN', 'BV_UI_ADMIN_ROL', -- Packages
-                 'BV_LOV_ANREDE', 'BV_LOV_ANWENDUNG', 'BV_LOV_ANWENDUNG_ART', 'BV_LOV_ANWENDUNG_ADMIN', 'BV_LOV_ANWENDUNG_ROLLE', 'BV_LOV_BENUTZER',
+                 'BV_UI_ADMIN_ANW', 'BV_UI_EDIT_ANW', 'BV_UI_ADMIN_ARF', 'BV_UI_ADMIN_BEN', 'BV_UI_ADMIN_ROL', -- Packages
+                 'BV_LOV_ANREDE', 'BV_LOV_ANWENDUNG', 'BV_LOV_ANWENDUNG_ART', 'BV_LOV_ANWENDUNG_ADMIN', 'BV_LOV_ANWENDUNG_ROLLE', 
+                 'BV_LOV_APEX_ANWENDUNG', 'BV_LOV_BENUTZER',
                  'BV_LOV_ROLLE', 'BV_LOV_SCHEMA', 'BV_LOV_TITEL', 'BV_UI_ADMIN_AAR', 'BV_UI_ADMIN_ANR',
                  'BV_UI_ADMIN_ANW', 'BV_UI_ADMIN_ARF', 'BV_UI_EDIT_BEN', 'BV_UI_EDIT_BEN_ROLLEN', 'BV_UI_ADMIN_BEN_MAIN',
-                 'BV_UI_ADMIN_BEN_ROL_MAIN', 'BV_UI_ADMIN_EINFACHE_ROL_SHUTTLE', 'BV_UI_ADMIN_KOMPLEXE_ROL_MAIN',
+                 'BV_UI_ADMIN_BEN_ROL_MAIN', 'BV_UI_EDIT_ANW_ROL', 'BV_UI_EDIT_KOMPLEXE_ROL',
                  'BV_UI_ADMIN_REC', 'BV_UI_ADMIN_ROL', 'BV_UI_ADMIN_TIT', 'BV_UI_BENUTZER_MAIN',-- Views
                  '',   -- Tabellen
-                 '',  -- Synonyme
+                 'BL_ANW', 'BL_BEN', 'BL_RECHT', 'BV_ANREDE',  -- Synonyme
                  '' -- Sequenzen
                  )
              and object_type not like '%BODY'
@@ -46,19 +47,65 @@ begin
 end;
 /
 
+declare
+  cursor synonym_cur is
+    select synonym_name
+      from all_synonyms
+     where (synonym_name like '%BV_RECHT'
+        or synonym_name like '%BV_ROLLE'
+        or synonym_name like '%BV_BENUTZER_RECHTE'
+        or synonym_name like '%BV_BENUTZER_ROLLE'
+        or synonym_name like '%BV_BENUTZER')
+       and owner = upper('&APEX_USER.');
+  synonym_does_not_exist exception;
+  pragma exception_init(synonym_does_not_exist, -1434);
+begin
+  for syn in synonym_cur loop
+    begin
+      execute immediate 'drop synonym ' || syn.synonym_name;
+      dbms_output.put_line('&s1.Synonym ' || syn.synonym_name || ' deleted.');
+    exception
+      when synonym_does_not_exist then
+        null;
+    end;
+  end loop;
+end;
+/
+
+
+declare
+  table_does_not_exist exception;
+  pragma exception_init(table_does_not_exist, -942);
+  cursor dl_view_cur is
+    select view_name
+      from all_views
+     where view_name like 'DL_BV_%'
+       and owner = upper('&APEX_USER.');
+begin
+  for vw in dl_view_cur loop
+    begin
+      execute immediate 'drop view ' || vw.view_name;
+      dbms_output.put_line('&s1.DL view ' || vw.view_name || ' deleted.');
+    exception
+      when table_does_not_exist then
+        null;
+    end;
+  end loop;
+end;
+/
+
 
 prompt &h3.Checking whether app still exists.
 
 declare
   l_app_id number;
   l_ws number;
-  c_app_alias constant varchar2(30 byte) := 'SCT_ADMIN';  
+  c_app_alias constant varchar2(30 byte) := '&APEX_ALIAS.';  
 begin
   select application_id, workspace_id
     into l_app_id, l_ws
     from apex_applications
-   where alias = c_app_alias
-     and owner = '&INSTALL_USER.';
+   where alias = c_app_alias;
    
   dbms_output.put_line('&s1.Remove existing application ' || c_app_alias);
   wwv_flow_api.set_security_group_id(l_ws);

@@ -6,6 +6,9 @@ prompt &h3.Check installation prerequisites
 prompt &h3.Remove existing installation
 @&install_dir.clean_up_install.sql
 
+prompt &h3.Create messages
+@&msg_dir.MessageGroup_BV.sql
+
 prompt &h3.Create sequences
 @&tool_dir.check_has_sequence bv_seq
 
@@ -34,18 +37,18 @@ prompt &h3.Install Views
 @&tool_dir.install_view bv_bv_rolle
 
 prompt &h3.Create package specifications
+@&tool_dir.install_package_spec bv_utils
 @&tool_dir.install_package_spec bl_anw
 @&tool_dir.install_package_spec bl_ben
 @&tool_dir.install_package_spec bl_recht
 @&tool_dir.install_package_spec bv_recht_pkg
-@&tool_dir.install_package_spec bv_utils
 
 prompt &h3.Create package bodies
+@&tool_dir.install_package_body bv_utils
 @&tool_dir.install_package_body bl_anw
 @&tool_dir.install_package_body bl_ben
 @&tool_dir.install_package_body bl_recht
 @&tool_dir.install_package_body bv_recht_pkg
-@&tool_dir.install_package_body bv_utils
 
 prompt &h3.Load initial data
 @&script_dir.initial_data.sql

@@ -4,7 +4,7 @@ create or replace editionable view  bv_ui_admin_anr as
        anr_beschreibung,
        anr_aktiv,
        anr_sortierung
-  from bv_anrede;
+  from dl_bv_anrede;
 
 comment on column  bv_ui_admin_anr.anr_id is 'Primaerschluessel';
 comment on column  bv_ui_admin_anr.anr_name is 'Displayname zur Darstellung im Einblendmenue auf der Oberflaeche';

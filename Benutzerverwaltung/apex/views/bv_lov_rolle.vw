@@ -1,6 +1,6 @@
 create or replace editionable view bv_lov_rolle as 
 select rol_name d, rol_id r, rol_anw_id
-  from bv_rolle
+  from dl_bv_rolle
  where rol_aktiv = &C_TRUE.
  order by rol_anw_id, rol_name;
 

@@ -1,7 +1,7 @@
 create or replace editionable view  bv_ui_admin_arf as 
 select arf_anw_id,
        listagg(arf_referenz_anw_id, ':') within group (order by arf_anw_id) arf_anw_id_list
-  from bv_anwendung_referenz
+  from dl_bv_anwendung_referenz
  where arf_referenz_anw_id != arf_anw_id
  group by arf_anw_id;
 

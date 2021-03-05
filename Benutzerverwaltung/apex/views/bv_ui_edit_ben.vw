@@ -10,7 +10,7 @@ select ben_id,
        ben_telefon,
        ben_gueltig_ab,
        ben_gueltig_bis
-  from bv_benutzer ben;
+  from dl_bv_benutzer ben;
 
 comment on column  bv_ui_edit_ben.ben_id is 'Primaerschluessel';
 comment on column  bv_ui_edit_ben.ben_ad is 'Active Directory DN';

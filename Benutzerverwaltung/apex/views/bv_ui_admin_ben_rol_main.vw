@@ -4,7 +4,7 @@ select bro_ben_id,
        bro_anw_id,
        bro_gueltig_ab,
        bro_gueltig_bis
-  from bv_benutzer_rolle;
+  from dl_bv_benutzer_rolle;
 
 comment on column  bv_ui_admin_ben_rol_main.bro_ben_id is 'Primaerschluessel, Referenz auf BV_BENUTZER';
 comment on column  bv_ui_admin_ben_rol_main.bro_rol_id is 'Primaerschluessel, Referenz auf BV_ROLLE';

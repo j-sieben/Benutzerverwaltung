@@ -29,7 +29,13 @@ as
   /** Methoden zur Verwaltung von Anwendungen
    */
   /** Validierung der Daten einer Anwendung
-   * %throws
+   * %raises UTL_ITEM_IS_REQUIRED
+   *         - ANW_ID_MISSING, falls p_row.ANW_ID NULL ist
+   *         - Errorcode ANW_AAR_ID_MISSING, falls p_row.ANW_AAR_ID NULL ist
+   *         - Errorcode ANW_APEX_ALIAS_MISSING, falls p_row.ANW_APEX_ALIAS NULL ist
+   *         BV_OBJECT_MISSING, falls p_row.ANW_ID nicht als APEX-Anwendung mit entsprechendem Alias existiert
+   *         INVALID_SCHEMA, falls p_row.ANW_SCHEMA nicht existiert
+   *         BV_INVALID_BOOLEAN, falls nicht entweder bv_utils.C_TRUE oder bv_utils.C_FALSE fuer p_row.anw_aktiv uebergeben wurde
    */
   procedure validiere_anwendung(
     p_row in out nocopy  bv_anwendung%rowtype);

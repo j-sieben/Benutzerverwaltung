@@ -4,7 +4,7 @@ select aar_id,
        aar_beschreibung,
        aar_aktiv,
        aar_sortierung
-  from bv_anwendung_art;
+  from dl_bv_anwendung_art;
 
 comment on column  bv_ui_admin_aar.aar_id is 'Primaerschluessel';
 comment on column  bv_ui_admin_aar.aar_name is 'Displayname zur Darstellung im Einblendmenue auf der Oberflaeche';

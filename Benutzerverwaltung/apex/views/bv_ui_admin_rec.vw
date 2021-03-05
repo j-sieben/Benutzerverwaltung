@@ -5,7 +5,8 @@ select rec_id,
        rec_beschreibung,
        rec_aktiv,
        rec_sortierung
-  from bv_recht;
+  from dl_bv_recht
+ where rec_anw_id = (select utl_apex.get_value('P50_REC_ANW_ID') from dual);
 
 comment on column  bv_ui_admin_rec.rec_id is 'Primaerschluessel';
 comment on column  bv_ui_admin_rec.rec_anw_id is 'Primaerschluessel, Referenz auf BV_ANWENDUNG';

@@ -5,6 +5,8 @@ as
    * %ui
    */
    
+  
+   
   /* Methoden zur Autorisierung */
   /** Funktion zur Bestimmung, ob der aktuell angemeldete Benutzer ein
    * Anwendungsrecht besitzt oder nicht.
@@ -16,9 +18,25 @@ as
    *         und damit Ressourcen der APEX-Anwendung freizugeben
    */
   function benutzer_hat_recht(
-    p_rec_id in bv_recht.rec_id%type,
-    p_anw_id in bv_anwendung.anw_id%type default null)
+    p_rec_id in dl_bv_recht.rec_id%type,
+    p_anw_id in dl_bv_anwendung.anw_id%type default null)
     return boolean;
+    
+  
+  /** Methode ermittelt, ob die aktuell referenzierte Anwendung eine komplexe Hierarchie besitzt
+   * %param  p_anw_id  ID der Anwendung, die geprueft werden soll
+   * %return Flag, das anzeigt, ob die Anwendung den Typ HIERARCHIE_KOMPLEX besitzt (TRUE) oder nicht (FALSE)
+   * %usage  Wird als Bedingungspruefung von der Oberflaeche aufgerufen
+   */
+  function ist_komplexe_hierarchie(
+    p_anw_id in dl_bv_anwendung.anw_id%type)
+    return boolean;
+    
+    
+  /** Methode liefert das Maximaldatum fuer unbegrenzt gueltige Datensaetze
+   */
+  function get_max_datum
+    return date;
     
     
   /** Verwaltung der Anwendungsseite ADMIN_AAR */  
@@ -32,12 +50,6 @@ as
     return boolean;   
    
   procedure verarbeite_admin_anr;
-   
-  /** Verwaltung der Anwendungsseite ADMIN_ANW */  
-  function validiere_admin_anw
-    return boolean;   
-   
-  procedure verarbeite_admin_anw;
   
   /** Verwaltung der Anwendungsseite ADMIN_ARF */ 
   function validiere_admin_arf
@@ -62,8 +74,18 @@ as
     return boolean;
   
   procedure verarbeite_admin_tit;
+   
+  /** Verwaltung der Anwendungsseite EDIT_ANW */ 
+  /** Methode belegt Anwendungselemente bei Neuanlage/Aenderung der ANW_ID */
+  procedure belege_edit_anw;
   
-  /** Verwaltung der Anwendungsseite ADMIN_BEN */ 
+  
+  function validiere_edit_anw
+    return boolean;   
+   
+  procedure verarbeite_edit_anw;
+  
+  /** Verwaltung der Anwendungsseite EDIT_BEN */ 
   function validiere_edit_ben
     return boolean;
     
@@ -71,14 +93,22 @@ as
     
   procedure verarbeite_edit_ben_rollen;
   
-  /** Verwaltung der Anwendungsseite ADMIN_ROL */  
-  function get_hierarchie_url
-    return varchar2;
-  
-  /** Verwaltung der Anwendungsseite AMDIN_EINFACHE_ROL */
-  function validiere_admin_einfache_rol
+  /** Verwaltung der Anwendungsseite ADMIN_ROL */ 
+  function validiere_edit_einfache_rol
     return boolean;
     
-  procedure verarbeite_admin_einfache_rol;
+  procedure verarbeite_edit_einfache_rol;
+  
+  /** Verwaltung der Anwendungsseite AMDIN_KOMPLEXE_ROL */
+  function validiere_edit_komplexe_rol
+    return boolean;
+  
+  /** Verwaltung der Anwendungsseite EDIT_ROL */ 
+  function validiere_edit_rol
+    return boolean;
+    
+  procedure verarbeite_edit_rol;
+    
+  procedure verarbeite_edit_komplexe_rol;
 end bv_ui;
 /

@@ -1,6 +1,6 @@
 prompt Anwendung BV
 declare
-  l_row bv_anwendung%rowtype;
+  l_row dl_bv_anwendung%rowtype;
 begin
   l_row.anw_id := '&APEX_ALIAS.';
   l_row.anw_apex_alias := '&APEX_ALIAS.';
@@ -16,7 +16,7 @@ end;
 
 prompt Rollen anlegen
 declare
-  p_row bv_rolle%rowtype;
+  p_row dl_bv_rolle%rowtype;
 begin
   p_row.rol_id := 'SUPER_ADMIN';
   p_row.rol_anw_id := '&APEX_ALIAS.';

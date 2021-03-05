@@ -102,7 +102,7 @@ as
       join bv_benutzer_rechte bre on ben.ben_id = bre.ben_id
       join bv_anwendung anw on bre.anw_id = anw.anw_id
      where ben.ben_ad = p_ben_ad
-       and (bre.rec_id like p_rec_id || '%' or bre.rec_id = 'SUPER_ADMIN')
+       and (bre.rec_id like p_rec_id || '%' or bre.rec_id = C_SUPER_ADMIN)
        and anw.anw_apex_alias = p_anw_id;
       
     return case l_flag when 0 then bv_utils.C_FALSE else bv_utils.C_TRUE end;
@@ -116,7 +116,7 @@ as
     p_ben_ad in bv_benutzer.ben_ad%type,
     p_rol_id in bv_rolle.rol_id%type,
     p_anw_id in bv_anwendung.anw_id%type)
-    return number
+    return bv_utils.flag_type
   as
     l_flag number(1, 0);
   begin
@@ -128,14 +128,39 @@ as
      where ben.ben_ad = p_ben_ad
        and bro_rol_id = p_rol_id
        and anw.anw_apex_alias = p_anw_id;
-    return l_flag;
+    return bv_utils.to_bool(l_flag);
   exception
     when no_data_found then
-      return null;
+      return bv_utils.C_FALSE;
   end benutzer_ist;
 
 
   function get_admin_anw(
+    p_ben_ad in bv_benutzer.ben_ad%type,
+    p_anw_id in bv_anwendung.anw_id%type)
+    return char_table
+    pipelined
+  as
+    c_app_prefix constant varchar2(10) := 'APP_';
+    cursor benutzer_anwendungen(
+      p_ben_ad in bv_benutzer.ben_ad%type,
+      p_anw_id in bv_anwendung.anw_id%type) 
+    is
+      select distinct replace(anw_id, C_APP_PREFIX) anw_id
+        from bv_bv_benutzer_rechte
+       where (ben_id = (select ben_id
+                          from bv_benutzer
+                         where upper(ben_ad) = p_ben_ad)
+          or benutzer_hat_recht(p_ben_ad, C_SUPER_ADMIN, p_anw_id) = bv_utils.C_TRUE);
+  begin
+    for anw in benutzer_anwendungen(upper(p_ben_ad), p_anw_id) loop
+      pipe row (anw.anw_id);
+    end loop;
+    return;
+  end get_admin_anw;
+
+
+  function get_admin_rec(
     p_ben_ad in bv_benutzer.ben_ad%type,
     p_anw_id in bv_anwendung.anw_id%type)
     return char_table
@@ -151,13 +176,13 @@ as
        where (ben_id = (select ben_id
                           from bv_benutzer
                          where upper(ben_ad) = p_ben_ad)
-          or benutzer_hat_recht(p_ben_ad, p_anw_id, C_SUPER_ADMIN) = bv_utils.C_TRUE);
+          or benutzer_hat_recht(p_ben_ad, C_SUPER_ADMIN, p_anw_id) = bv_utils.C_TRUE);
   begin
     for rec in benutzer_rechte(upper(p_ben_ad), p_anw_id) loop
       pipe row (rec.rec_id);
     end loop;
     return;
-  end get_admin_anw;
+  end get_admin_rec;
 
 
   procedure recht_zuweisen(
@@ -195,8 +220,24 @@ as
     l_row.bro_gueltig_ab := coalesce(p_row.bro_gueltig_ab, sysdate);
     l_row.bro_gueltig_bis := coalesce(p_row.bro_gueltig_ab, bv_utils.C_MAX_DATE);
     
-    insert into bv_benutzer_rolle
-    values l_row;
+    merge into bv_benutzer_rolle t
+    using (select l_row.bro_ben_id bro_ben_id,
+                  l_row.bro_rol_id bro_rol_id,
+                  l_row.bro_anw_id bro_anw_id,
+                  l_row.bro_gueltig_ab bro_gueltig_ab,
+                  l_row.bro_gueltig_bis bro_gueltig_bis
+             from dual) s
+       on (t.bro_ben_id = s.bro_ben_id
+      and t.bro_rol_id = s.bro_rol_id
+      and t.bro_anw_id = s.bro_anw_id)
+     when matched then update set
+          t.bro_gueltig_ab = s.bro_gueltig_ab,
+          t.bro_gueltig_bis = s.bro_gueltig_bis
+     when not matched then insert(bro_ben_id, bro_rol_id, bro_anw_id, bro_gueltig_ab, bro_gueltig_bis)
+    values (s.bro_ben_id, s.bro_rol_id, s.bro_anw_id, s.bro_gueltig_ab, s.bro_gueltig_bis);
+    
+    commit;
+    
     refresh_mv;
   end rolle_zuweisen;
 
@@ -247,8 +288,51 @@ as
   procedure validiere_rolle(
     p_row in out nocopy bv_rolle%rowtype)
   as
+    l_cur sys_refcursor;
   begin
-    p_row.rol_id := dbms_assert.simple_sql_name(p_row.rol_id);
+    pit.enter_mandatory;
+    
+    -- Initialisierung
+    p_row.rol_aktiv := coalesce(upper(p_row.rol_aktiv), bv_utils.C_TRUE);
+    p_row.rol_sortierung := coalesce(p_row.rol_sortierung, 0);
+        
+    -- Einige Tests sind mit NULL-Pruefung versehen, um doppelten Test bei bulk-Modus zu verhindern
+    pit.assert_not_null(
+      p_condition => p_row.rol_id,
+      p_message_name => msg.UTL_ITEM_IS_REQUIRED,
+      p_error_code => 'ROL_ID_MISSING');
+      
+    if p_row.rol_id is not null then
+      p_row.rol_id := bv_utils.harmonize_sql_name(p_row.rol_id);
+    end if;
+    
+    pit.assert_not_null(
+      p_condition => p_row.rol_anw_id,
+      p_message_name => msg.UTL_ITEM_IS_REQUIRED,
+      p_error_code => 'ROL_ANW_ID_MISSING');
+    
+    -- pruefe, ob Anwendung existiert.
+    if p_row.rol_anw_id is not null then
+      open l_cur for
+        select null
+          from bv_anwendung
+         where anw_id = p_row.rol_anw_id;
+      pit.assert_exists(
+        p_cursor => l_cur,
+        p_message_name => msg.BV_OBJECT_MISSING,
+        p_msg_args => msg_args('Die Anwendung', p_row.rol_anw_id));
+    end if;
+    
+    pit.assert_not_null(
+      p_condition => p_row.rol_name,
+      p_message_name => msg.UTL_ITEM_IS_REQUIRED,
+      p_error_code => 'ROL_NAME_MISSING');
+    
+    pit.assert(
+      p_condition => p_row.rol_aktiv in (bv_utils.C_TRUE, bv_utils.C_FALSE),
+      p_message_name => msg.BV_INVALID_BOOLEAN);
+          
+    pit.leave_mandatory;
   end validiere_rolle;
 
 
@@ -256,8 +340,9 @@ as
     p_row in out nocopy bv_rolle%rowtype)
   as
   begin
-    -- Initialisierung
-    p_row.rol_id := upper(p_row.rol_id);
+    pit.enter_mandatory;
+    
+    validiere_rolle(p_row);
         
     merge into bv_rolle r
     using (select p_row.rol_id rol_id,
@@ -288,6 +373,8 @@ as
       /* TODO: Recht/Rollenkonzept implementieren */
       null;
     end if;
+    
+    pit.leave_mandatory;
   end merge_rolle;
   
   
@@ -337,21 +424,6 @@ as
 
     refresh_mv;
   end loesche_rolle;
-  
-  
-  procedure merge_rolle_rolle(
-    p_rro_rol_id in bv_rolle_rolle.rro_rol_id%type,
-    p_rro_parent_rol_id in bv_rolle_rolle.rro_parent_rol_id%type,
-    p_rro_anw_id in bv_rolle_rolle.rro_anw_id%type)
-  as
-    l_row bv_rolle_rolle%rowtype;
-  begin
-    l_row.rro_rol_id := p_rro_rol_id;
-    l_row.rro_parent_rol_id := p_rro_parent_rol_id;
-    l_row.rro_anw_id := p_rro_anw_id;
-  
-    merge_rolle_rolle(l_row);
-  end merge_rolle_rolle;
   
   
   procedure validiere_recht(
@@ -477,6 +549,14 @@ as
        and rre_rec_id = p_row.rre_rec_id
        and rre_anw_id = p_row.rre_anw_id;
   end loesche_rolle_recht;
+  
+  
+  procedure validiere_rolle_rolle(
+    p_row in bv_rolle_rolle%rowtype)
+  as
+  begin
+    null;
+  end validiere_rolle_rolle;
 
 
   procedure merge_rolle_rolle(
@@ -484,6 +564,30 @@ as
   as
   begin
     null;
+  end merge_rolle_rolle;
+
+
+  procedure merge_rolle_rolle(
+    p_row in bv_rolle_rolle%rowtype,
+    p_rol_list in char_table)
+  as
+  begin
+    null;
+  end merge_rolle_rolle;
+  
+  
+  procedure merge_rolle_rolle(
+    p_rro_rol_id in bv_rolle_rolle.rro_rol_id%type,
+    p_rro_parent_rol_id in bv_rolle_rolle.rro_parent_rol_id%type,
+    p_rro_anw_id in bv_rolle_rolle.rro_anw_id%type)
+  as
+    l_row bv_rolle_rolle%rowtype;
+  begin
+    l_row.rro_rol_id := p_rro_rol_id;
+    l_row.rro_parent_rol_id := p_rro_parent_rol_id;
+    l_row.rro_anw_id := p_rro_anw_id;
+  
+    merge_rolle_rolle(l_row);
   end merge_rolle_rolle;
 
 
@@ -537,34 +641,32 @@ as
 
   procedure einfache_rollen_hierarchie(
     p_anw_id in bv_anwendung.anw_id%type,
-    p_rol_hierarchie in varchar2)
+    p_rol_hierarchie in char_table)
   as
     l_rol_parent bv_rolle.rol_id%type;
-    l_rollen char_table;
   begin
     -- Alte Zuordnung loeschen
     delete from bv_rolle_rolle
      where rro_anw_id = p_anw_id;
 
-    -- Neue Eintraege gemaess Sortierung des Controls erstellen
-    utl_text.string_to_table(p_rol_hierarchie, l_rollen);
-
-    -- Erste Rolle ist Master und wird ROL_ID = PARENT_ROL_ID
-    l_rol_parent := l_rollen(l_rollen.first);
-    for rol in l_rollen.first .. l_rollen.last loop
-      -- Neue Rollenzuordnung eintragen. Nicht gewaehlte Rollen werden
-      -- nicht beruecksichtigt, aber auch nicht deaktiv gesetzt.
-      insert into bv_rolle_rolle(rro_rol_id, rro_parent_rol_id, rro_anw_id)
-      values (l_rollen(rol), l_rol_parent, p_anw_id);
-      -- Aktuelle Rolle als Parent merken
-      l_rol_parent := l_rollen(rol);
-
-      -- Sortierung der Rollen neu setzen
-      update bv_rolle
-         set rol_sortierung = rol * 10
-       where rol_id = l_rollen(rol)
-         and rol_anw_id = p_anw_id;
-    end loop;
+    if p_rol_hierarchie.count > 0 then
+      -- Erste Rolle ist Master und wird ROL_ID = PARENT_ROL_ID
+      l_rol_parent := p_rol_hierarchie(p_rol_hierarchie.first);
+      for rol in 1 .. p_rol_hierarchie.count loop
+        -- Neue Rollenzuordnung eintragen. Nicht gewaehlte Rollen werden
+        -- nicht beruecksichtigt, aber auch nicht deaktiv gesetzt.
+        insert into bv_rolle_rolle(rro_rol_id, rro_parent_rol_id, rro_anw_id)
+        values (p_rol_hierarchie(rol), l_rol_parent, p_anw_id);
+        -- Aktuelle Rolle als Parent merken
+        l_rol_parent := p_rol_hierarchie(rol);
+  
+        -- Sortierung der Rollen neu setzen
+        update bv_rolle
+           set rol_sortierung = rol * 10
+         where rol_id = p_rol_hierarchie(rol)
+           and rol_anw_id = p_anw_id;
+      end loop;
+    end if;
   end einfache_rollen_hierarchie;
 
 

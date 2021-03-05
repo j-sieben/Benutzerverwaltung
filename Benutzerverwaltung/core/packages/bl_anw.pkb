@@ -1,7 +1,7 @@
 create or replace package body bl_anw as
 
   /* Package-Konstanten */
-  c_anw_id constant varchar2(2) := 'BV';
+  C_ANW_ID constant varchar2(2) := 'BV';
 
 
   /* Hilfsfunktionen */
@@ -13,7 +13,7 @@ create or replace package body bl_anw as
     p_row in bv_anwendung%rowtype)
   as
   begin
-    if p_row.anw_id = c_anw_id then
+    if p_row.anw_id = C_ANW_ID then
       -- Sonderfall initiale Installation: Fall C_ANW erzeugt wird,
       -- BV-Rollen erzeugen, um Constraintverletzung zu vermeiden.
       bl_recht.merge_rolle(
@@ -58,7 +58,7 @@ create or replace package body bl_anw as
     -- Recht, die neue Anwendung zu administrieren, zu BV-Rechten hinzufuegen
     bl_recht.merge_recht(
       p_rec_id => l_rol_id,
-      p_rec_anw_id => C_ANW_ID,
+      p_rec_anw_id => p_row.anw_id,
       p_rec_name => 'Anwendung ' || p_row.anw_id || ' administrieren',
       p_rec_beschreibung => 'Recht, die Anwendung ' || p_row.anw_id || ' zu administrieren',
       p_rec_aktiv => bv_utils.C_TRUE);
@@ -78,17 +78,18 @@ create or replace package body bl_anw as
       bl_recht.merge_rolle_recht(
         p_rre_rol_id => l_rol_id,
         p_rre_rec_id => l_rol_id,
-        p_rre_anw_id => C_ANW_ID);
+        p_rre_anw_id => p_row.anw_id);
 
       -- Rolle in BV-Nutzungskonzept integrieren
       bl_recht.merge_rolle_rolle(
         p_rro_rol_id => 'LESER',
         p_rro_parent_rol_id => l_rol_id,
-        p_rro_anw_id => C_ANW_ID);
+        p_rro_anw_id => p_row.anw_id);
+        
       bl_recht.merge_rolle_rolle(
         p_rro_rol_id => 'ADMINISTRATOR',
         p_rro_parent_rol_id => l_rol_id,
-        p_rro_anw_id => C_ANW_ID);
+        p_rro_anw_id => p_row.anw_id);
     when bv_utils.C_AAR_HIER_KOMPLEX then
       null;
     else
@@ -162,28 +163,76 @@ create or replace package body bl_anw as
      where aar_id = p_row.aar_id;
   end loesche_anwendung_art;  
   
-  
+  /* Bereich ANWENDUNG */
   procedure validiere_anwendung(
     p_row in out nocopy bv_anwendung%rowtype)
   as
+    l_cur sys_refcursor;
   begin
-    p_row.anw_id := dbms_assert.simple_sql_name(p_row.anw_id);
-    p_row.anw_schema := dbms_assert.simple_sql_name(p_row.anw_schema);
+    pit.enter_mandatory;
+    
+    -- Initialisierung  
+    p_row.anw_id := upper(p_row.anw_id);
+    p_row.anw_apex_alias := coalesce(p_row.anw_apex_alias, p_row.anw_id);
+    p_row.anw_schema := upper(p_row.anw_schema);
+    p_row.anw_aktiv := coalesce(upper(p_row.anw_aktiv), bv_utils.C_TRUE);
+        
+    pit.assert_not_null(
+      p_condition => p_row.anw_aar_id,
+      p_message_name => msg.UTL_ITEM_IS_REQUIRED,
+      p_error_code => 'ANW_AAR_ID_MISSING');
+      
+    pit.assert_not_null(
+      p_condition => p_row.anw_apex_alias,
+      p_message_name => msg.UTL_ITEM_IS_REQUIRED,
+      p_error_code => 'ANW_APEX_ALIAS_MISSING');
+    
+    pit.assert(
+      p_condition => p_row.anw_aktiv in (bv_utils.C_TRUE, bv_utils.C_FALSE),
+      p_message_name => msg.BV_INVALID_BOOLEAN);
+    
+    pit.assert(
+      p_condition => p_row.anw_aktiv in (bv_utils.C_TRUE, bv_utils.C_FALSE),
+      p_message_name => msg.BV_INVALID_BOOLEAN);
+      
+    pit.assert_not_null(
+      p_condition => p_row.anw_id,
+      p_message_name => msg.UTL_ITEM_IS_REQUIRED,
+      p_error_code => 'ANW_ID_MISSING');
+      
+    -- pruefe, ob Anwendung existiert. Mit NULL-Pruefung, um doppelten Test bei bulk-Modus zu verhindern
+    if p_row.anw_id is not null then
+      open l_cur for
+        select null
+          from apex_applications
+         where alias = p_row.anw_id;
+      pit.assert_exists(
+        p_cursor => l_cur,
+        p_message_name => msg.BV_OBJECT_MISSING,
+        p_msg_args => msg_args('Die APEX-Anwendung', p_row.anw_id));
+    end if;
+    
+    -- Wrapper, um zu verhindern, dass Fehler direkt geworfen wird
+    begin
+      p_row.anw_schema := dbms_assert.schema_name(p_row.anw_schema);
+    exception
+      when dbms_spd.INVALID_SCHEMA then
+        pit.error(
+          p_message_name => msg.PIT_PASS_MESSAGE, 
+          p_msg_args => msg_args(substr(sqlerrm, 12)),
+          p_error_code => 'INVALID_SCHEMA');
+    end;
+    
+    pit.leave_mandatory;
   end validiere_anwendung;
   
   
   procedure merge_anwendung(
     p_row in out nocopy bv_anwendung%rowtype)
   as
-    c_action_tmpl constant varchar2(200) := q'[begin bl_anw.create_anw_views('#ANW_ID#'); end;]';
+    C_ACTION_TMPL constant varchar2(200) := q'[begin bl_anw.create_anw_views('#ANW_ID#'); end;]';
     l_exists pls_integer;
   begin
-    
-    -- Initialisierung  
-    p_row.anw_id := upper(p_row.anw_id);
-    p_row.anw_aktiv := coalesce(upper(p_row.anw_aktiv), bv_utils.C_TRUE);
-    p_row.anw_apex_alias := coalesce(p_row.anw_apex_alias, p_row.anw_id);
-    p_row.anw_schema := upper(p_row.anw_schema);
     
     validiere_anwendung(p_row);
     
@@ -195,8 +244,7 @@ create or replace package body bl_anw as
     if l_exists = 1 then
       -- UPDATE-Zweig
       update bv_anwendung
-         set anw_aar_id = p_row.anw_aar_id,
-             anw_apex_alias = p_row.anw_apex_alias,
+         set anw_apex_alias = p_row.anw_apex_alias,
              anw_schema = p_row.anw_schema,
              anw_name = p_row.anw_name,
              anw_beschreibung = p_row.anw_beschreibung,
@@ -216,7 +264,7 @@ create or replace package body bl_anw as
     end if;
 
     -- Asynchrone Erstellung der Views im Transaktionskontext
-    bv_utils.submit_job(replace(c_action_tmpl, '#ANW_ID#', p_row.anw_id));
+    bv_utils.submit_job(replace(C_ACTION_TMPL, '#ANW_ID#', p_row.anw_id));
     
   end merge_anwendung;
 
@@ -313,7 +361,7 @@ select ben.ben_id, ben.ben_ad, bro.bro_rol_id
     l_stmt := q'[create or replace view #ANW_ID#_BV_RECHT as
 select rec_id, rec_name, rec_beschreibung, rec_aktiv, rec_sortierung
   from bv_recht
- where rec_anw_id = '#ANW_ID#']';
+ where reC_ANW_ID = '#ANW_ID#']';
     execute immediate replace(l_stmt, '#ANW_ID#', upper(p_anw_id));
 
     l_stmt := q'[create or replace view #ANW_ID#_BV_ROLLE as

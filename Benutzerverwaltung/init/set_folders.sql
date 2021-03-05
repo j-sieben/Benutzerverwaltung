@@ -12,3 +12,4 @@ define type_dir=&install_dir.types/
 define seq_dir=&install_dir.sequences/
 define script_dir=&install_dir.scripts/
 define apex_dir=&install_dir.apex/&APEX_VERSION./
+define msg_dir=messages/&DEFAULT_LANGUAGE./

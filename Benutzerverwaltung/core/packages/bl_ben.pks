@@ -42,10 +42,13 @@ as
   /** Methoden zur Verwaltung von Anwendungsbenutzern
    */
   /** Methode validiert einen Benutzer
-   * %throws msg.PARAM_MISSING, Error Codes
+   * %raises msg.PARAM_MISSING, Error Codes
+   *         - BEN_ANR_ID_MISSING, falls p_row.ben_anr_id NULL ist
+   *         - BEN_AD_MISSING, falls p_row.ben_ad NULL ist
    *         - BEN_EMAIL_MISSING, falls p_row.ben_email NULL ist
    *         - BEN_NACHNAME_MISSING, falls p_row.ben_nachname NULL ist
    *         - BEN_GUELTIG_BIS_MISSING, falls p_row.ben_gueltig_bis NULL ist
+   *         msg.BV_INVALID_DATE_PERIOD, falls p_row.ben_gueltig_ab groesser als p_row.ben_gueltig_bis ist
    */
   procedure validiere_benutzer(
     p_row in out nocopy bv_benutzer%rowtype);

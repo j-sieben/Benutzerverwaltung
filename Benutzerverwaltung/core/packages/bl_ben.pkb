@@ -134,17 +134,41 @@ as
   as
   begin
     pit.assert_not_null(
+      p_condition => p_row.ben_ad,
+      p_message_name => msg.UTL_ITEM_IS_REQUIRED, 
+      p_error_code => 'BEN_AD_MISSING');
+    pit.assert_not_null(
+      p_condition => p_row.ben_anr_id,
+      p_message_name => msg.UTL_ITEM_IS_REQUIRED, 
+      p_error_code => 'BEN_ANR_ID_MISSING');
+    pit.assert_not_null(
       p_condition => p_row.ben_email,
       p_message_name => msg.UTL_ITEM_IS_REQUIRED, 
-      p_error_code => 'EMAIL_TO_MISSING');
+      p_error_code => 'BEN_EMAIL_MISSING');
     pit.assert_not_null(
       p_condition => p_row.ben_nachname, 
       p_message_name => msg.UTL_ITEM_IS_REQUIRED, 
-      p_error_code => 'LASTNAME_MISSING');
+      p_error_code => 'BEN_NACHNAME_MISSING');
+    pit.assert_not_null(
+      p_condition => p_row.ben_gueltig_ab, 
+      p_message_name => msg.UTL_ITEM_IS_REQUIRED, 
+      p_error_code => 'BEN_GUELTIG_AB_MISSING');
     pit.assert_not_null(
       p_condition => p_row.ben_gueltig_bis, 
       p_message_name => msg.UTL_ITEM_IS_REQUIRED, 
-      p_error_code => 'VALID_TO_MISSING');
+      p_error_code => 'BEN_GUELTIG_BIS_MISSING');
+      
+    pit.assert(
+      p_condition => p_row.ben_gueltig_ab < p_row.ben_gueltig_bis,
+      p_message_name => msg.BV_INVALID_DATE_PERIOD);
+      
+    if p_row.ben_id is null then
+      -- Pruefungen bei Neuanlage
+      pit.assert(
+        p_condition => p_row.ben_gueltig_ab >= trunc(sysdate),
+        p_message_name => msg.BV_INVALID_VALID_FROM);
+    end if;
+      
   end validiere_benutzer;
   
 
@@ -152,9 +176,37 @@ as
     p_row in out nocopy bv_benutzer%rowtype)
   as
   begin
-    p_row.ben_id := coalesce(p_row.ben_id, bv_seq.nextval);
+    pit.enter_optional(
+      p_params => msg_params(
+                    msg_param('p_row.ben_id', p_row.ben_id),
+                    msg_param('p_row.ben_ad', p_row.ben_ad),
+                    msg_param('p_row.ben_stz', p_row.ben_stz),
+                    msg_param('p_row.ben_anr_id', p_row.ben_anr_id),
+                    msg_param('p_row.ben_vorname', p_row.ben_vorname),
+                    msg_param('p_row.ben_nachname', p_row.ben_nachname),
+                    msg_param('p_row.ben_email', p_row.ben_email),
+                    msg_param('p_row.ben_telefon', p_row.ben_telefon),
+                    msg_param('p_row.ben_gueltig_ab', to_char(p_row.ben_gueltig_ab, 'dd.mm.yyyy')),
+                    msg_param('p_row.ben_gueltig_bis', to_char(p_row.ben_gueltig_bis, 'dd.mm.yyyy'))));
+    
+  
+    -- Initialisierung
     p_row.ben_gueltig_ab := coalesce(p_row.ben_gueltig_ab, trunc(sysdate));
     p_row.ben_gueltig_bis := coalesce(p_row.ben_gueltig_bis, bv_utils.C_MAX_DATE);
+    
+    validiere_benutzer(p_row);
+    
+    
+    -- Versuche, Benutzer anhand der AD zu finden
+    begin
+      select ben_id
+        into p_row.ben_id
+        from bv_benutzer
+       where ben_ad = p_row.ben_ad;
+    exception
+      when no_data_found then
+        p_row.ben_id := coalesce(p_row.ben_id, bv_seq.nextval);
+    end;
     
     merge into bv_benutzer t
     using (select p_row.ben_id ben_id, 
@@ -180,7 +232,11 @@ as
           ben_telefon = s.ben_telefon,
           ben_gueltig_bis = s.ben_gueltig_bis
      when not matched then insert(ben_id, ben_ad, ben_stz, ben_anr_id, ben_tit_id, ben_vorname, ben_nachname, ben_email, ben_telefon, ben_gueltig_bis)
-          values(s.ben_id, s.ben_ad, s.ben_stz, s.ben_anr_id, s.ben_tit_id, s.ben_vorname, s.ben_nachname, s.ben_email, s.ben_telefon, s.ben_gueltig_bis);                  
+          values(s.ben_id, s.ben_ad, s.ben_stz, s.ben_anr_id, s.ben_tit_id, s.ben_vorname, s.ben_nachname, s.ben_email, s.ben_telefon, s.ben_gueltig_bis); 
+          
+    pit.leave_optional(
+      p_params => msg_params(
+                    msg_param('p_row.ben_id', p_row.ben_id)));
   end merge_benutzer;
   
     

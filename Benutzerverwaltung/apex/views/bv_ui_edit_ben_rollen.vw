@@ -1,7 +1,8 @@
 create or replace editionable view  bv_ui_edit_ben_rollen as
 with params as(
        select utl_apex.get_user g_user,
-              v('P10_BEN_ID') g_ben_id
+              utl_apex.get_application_alias g_alias,
+              utl_apex.get_number('P10_BEN_ID') g_ben_id
          from dual)
 select /*+ no_merge (p) */
        bro_ben_id,
@@ -9,10 +10,10 @@ select /*+ no_merge (p) */
        bro_anw_id,
        bro_gueltig_ab,
        bro_gueltig_bis
-  from bv_benutzer_rolle
+  from dl_bv_benutzer_rolle
   join params p
     on bro_ben_id = g_ben_id
-  join table(bl_recht.get_admin_anw(g_user, '&APEX_ALIAS.'))
+  join table(bl_recht.get_admin_anw(g_user, g_alias))
     on bro_anw_id = column_value
  where bro_gueltig_bis > sysdate;
 

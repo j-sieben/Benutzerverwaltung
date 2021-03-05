@@ -8,7 +8,3 @@ select username d, username r
  order by d;
 
 comment on table bv_lov_schema  is 'LOV-View der View ALL_USERS, Liste aller Schemata der Datenbank, ohne Eintragungen einer Blacklist';
-
-
-select *
-  from apex_applications;

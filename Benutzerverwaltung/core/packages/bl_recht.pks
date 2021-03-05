@@ -49,15 +49,13 @@ as
     return bv_utils.flag_type;
 
 
-  /* Funktion zur Bestimmung, welche Rolle ein zu uebergebender Benutzer konkret
-   * zugewiesen bekommen hat. Liefert 'N', wenn die Rolle nicht direkt zugewiesen
-   * wurde, die zugewiesene Rolle die abgefragte Rolle aber beinhaltet.
+  /* Funktion zur Bestimmung, welche Rolle ein zu uebergebender Benutzer konkret zugewiesen bekommen hat.
+   * Liefert bv_utils.C_FALSE, wenn die Rolle nicht direkt zugewiesen wurde, die zugewiesene Rolle die abgefragte Rolle aber beinhaltet.
    * %param  p_ben_ad  AD-(LDAP-)-Name des angemeldeten Benutzers (APP_USER)
    * %param  p_rec_id  Anwendungsrecht
    * %param  p_anw_id  Bezeichnung der Anwendung (optional, default: APP_ALIAS)
    * %return true, falls der Benutzer diese Rolle zugewiesen bekam, false ansonsten
-   * %raises Es werden keine Fehler geworfen, wird ein nicht vorhandenes
-   *         Recht geprueft, liefert die Funktion NULL
+   * %raises Keine, wird ein nicht vorhandenes Recht geprueft, liefert die Funktion NULL
    * %usage  Die Funktion wird nicht direkt genutzt, sondern den APEX-Anwendungen
    *         ueber das Wrapper-Package {%link BV_RECHT_PKG} zur Verfuegung gestellt.
    */
@@ -65,11 +63,10 @@ as
     p_ben_ad in bv_benutzer.ben_ad%type,
     p_rol_id in bv_rolle.rol_id%type,
     p_anw_id in bv_anwendung.anw_id%type)
-    return number;
+    return bv_utils.flag_type;
 
 
-  /* Funktion zur Ausgabe einer Tabelle von Anwendungsnamen, die durch den angemeldeten
-   * Benutzer administriert werden
+  /* Funktion zur Ausgabe einer Tabelle von Anwendungsnamen, die durch den angemeldeten Benutzer administriert werden
    * %param  p_ben_ad  AD-(LDAP-)-Name des angemeldeten Benutzers (APP_USER)
    * %param  p_anw_id  Bezeichnung der Anwendung (optional, default: APP_ALIAS)
    * %return Eine liste von Anwendungsnamen
@@ -242,11 +239,34 @@ as
   /** Methode zur Verwaltung von Rollenhierarchien
    * %param  p_row  Zeile der Tabelle BV_ROLLE_ROLLE
    * %usage  Wird verwendet, um eine Rolle anzulegen oder zu aendern.
+   * %raises UTL_ITEM_IS_REQUIRED
+   *         - Errorcode ROL_ID_MISSING, falls p_row.ROL_ID ist
+   *         - Errorcode ROL_NAME_MISSING, falls p_row.ROL_NAME NULL ist
+   *         - Errorcode ROL_ANW_ID_MISSING, falls p_row.ROL_ANW_ID ist
+   *         BV_INVALID_BOOLEAN, falls nicht entweder bv_utils.C_TRUE oder bv_utils.C_FALSE fuer p_row.rol_aktiv uebergeben wurde
+   *         INVALID_SQL_NAME, falls p_row.ROL_ID nicht den Oracle Namenskonventionen fuer einfache SQL Bezeichner entspricht
+   *         BV_OBJECT_MISSING, falls p_row.ROL_ANW_ID nicht in BV_ANWENDUNG existiert
+   */
+  procedure validiere_rolle_rolle(
+    p_row in bv_rolle_rolle%rowtype);    
+  
+  /** Methode erwartet eine einfache Rollenhierarchie (nur eine untergeordnete Rolle)
+   * %param  p_row  Zeile der Tabelle BV_ROLLE_ROLLE
+   * %usage  Wird verwendet, um einfache Rollenhierarchien aufzubauen
    */
   procedure merge_rolle_rolle(
-    p_row in bv_rolle_rolle%rowtype);
+    p_row in bv_rolle_rolle%rowtype);    
+  
+  /** Methode erwartet eine komplexe Rollenhierarchie (evtl. mehrere untergeordnete Rollen)
+   * %param  p_row       Zeile der Tabelle BV_ROLLE_ROLLE
+   * %param  p_rol_list  Liste der zuzuordnenden Rollen
+   * %usage  Wird verwendet, um komplexe Rollenhierarchien aufzubauen
+   */
+  procedure merge_rolle_rolle(
+    p_row in bv_rolle_rolle%rowtype,
+    p_rol_list in char_table);
     
-  /** Ueberladung mit expliziten Parametern
+  /** Ueberladung mit expliziten Parametern, nur für Importzwecke
    */
   procedure merge_rolle_rolle(
     p_rro_rol_id in bv_rolle_rolle.rro_rol_id%type,
@@ -255,6 +275,7 @@ as
     
   /** Methode zum Loeschen einer Rollenhierarchie
    * %param  p_row  Zeile der Tabelle BV_ROLLE
+   * %usage  Wird verwendet, um alle Eintraege einer Rollenhierarchie zu entfernen
    */
   procedure loesche_rolle_rolle(
     p_row in bv_rolle_rolle%rowtype);
@@ -276,7 +297,7 @@ as
    */
   procedure einfache_rollen_hierarchie(
     p_anw_id in bv_anwendung.anw_id%type,
-    p_rol_hierarchie in varchar2);
+    p_rol_hierarchie in char_table);
     
   
   /** Methode uebernimmt eine Liste von Rollenzuordnungen und fuegt sie entsprechend

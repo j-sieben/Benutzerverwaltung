@@ -15,6 +15,7 @@ col apex_ws new_val APEX_WS format a30
 col apex_alias new_val APEX_ALIAS format a30
 col app_id new_val APP_ID format a30
 col apex_version new_val APEX_VERSION format a30
+col default_language new_val DEFAULT_LANGUAGE format a30
 
 
 select upper('&1.') install_user, upper('&2.') apex_user
@@ -30,6 +31,10 @@ select workspace apex_ws,
        '&5.' app_id
   from apex_workspaces
  where workspace = upper('&3.');
+ 
+select pml_name default_language
+  from &INSTALL_USER..pit_message_language_v
+ where pml_default_order = 10;
  
 
 @init/settings.sql

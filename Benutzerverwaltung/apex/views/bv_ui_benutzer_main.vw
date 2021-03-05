@@ -11,9 +11,11 @@ select ben.ben_id,
        case when sysdate between ben.ben_gueltig_ab and ben.ben_gueltig_bis
        then 'Ja'
        else 'Nein' end ben_aktiv
-  from bv_benutzer ben
-  join bv_anrede anr on ben.ben_anr_id = anr.anr_id
-  left join bv_titel tit on ben.ben_tit_id = tit.tit_id;
+  from dl_bv_benutzer ben
+  join dl_bv_anrede anr
+    on ben.ben_anr_id = anr.anr_id
+  left join dl_bv_titel tit
+    on ben.ben_tit_id = tit.tit_id;
 
 comment on column bv_ui_benutzer_main.ben_id is 'Primaerschluessel';
 comment on column bv_ui_benutzer_main.ben_ad is 'Active Directory DN';

@@ -5,6 +5,9 @@
 -- 3: ALIAS of the APEX-application. 
 -- 4: APP_ID of the APEX-application.
 
+-- Remarks: Messages will be installed in the default language of PIT.
+-- Translations must be installed separately
+
 @init/init.sql &1. &2. &3. &4. &5.
 
 alter session set current_schema=sys;

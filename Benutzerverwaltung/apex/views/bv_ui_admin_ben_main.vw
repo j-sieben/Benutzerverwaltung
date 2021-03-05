@@ -2,15 +2,19 @@ create or replace editionable view  bv_ui_admin_ben_main as
 select ben_id,
        ben_ad,
        ben_stz,
-       ben_anr_id,
-       ben_tit_id,
+       anr_name ben_anr_id,
+       tit_name ben_tit_id,
        ben_vorname,
        ben_nachname,
        ben_email,
        ben_telefon,
        ben_gueltig_ab,
        ben_gueltig_bis
-  from bv_benutzer ben;
+  from dl_bv_benutzer
+  join dl_bv_anrede
+    on ben_anr_id = anr_id
+  left join dl_bv_titel
+    on ben_tit_id = tit_id;
 
 comment on column  bv_ui_admin_ben_main.ben_id is 'Primaerschluessel';
 comment on column  bv_ui_admin_ben_main.ben_ad is 'Active Directory DN';

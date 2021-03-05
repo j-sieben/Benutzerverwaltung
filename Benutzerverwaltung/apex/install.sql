@@ -3,13 +3,18 @@
 prompt &h3.Remove existing installation
 @&install_dir.clean_up_install.sql
 
+prompt &h3.Create local views for &INSTALL_USER. tables with object grants
+@&script_dir.generate_data_interface.sql
+
 prompt &h3.CREATE VIEWS
 @&tool_dir.install_view bv_lov_anrede
 @&tool_dir.install_view bv_lov_anwendung
 @&tool_dir.install_view bv_lov_anwendung_admin
 @&tool_dir.install_view bv_lov_anwendung_art
 @&tool_dir.install_view bv_lov_anwendung_rolle
+@&tool_dir.install_view bv_lov_apex_anwendung
 @&tool_dir.install_view bv_lov_benutzer
+@&tool_dir.install_view bv_lov_edit_einfache_rol
 @&tool_dir.install_view bv_lov_rolle
 @&tool_dir.install_view bv_lov_schema
 @&tool_dir.install_view bv_lov_titel
@@ -17,15 +22,17 @@ prompt &h3.CREATE VIEWS
 @&tool_dir.install_view bv_ui_admin_anr
 @&tool_dir.install_view bv_ui_admin_anw
 @&tool_dir.install_view bv_ui_admin_arf
-@&tool_dir.install_view bv_ui_edit_ben_rollen
 @&tool_dir.install_view bv_ui_admin_ben_main
 @&tool_dir.install_view bv_ui_admin_ben_rol_main
-@&tool_dir.install_view bv_ui_admin_einfache_rol_shuttle
-@&tool_dir.install_view bv_ui_admin_komplexe_rol_main
 @&tool_dir.install_view bv_ui_admin_rec
 @&tool_dir.install_view bv_ui_admin_rol
 @&tool_dir.install_view bv_ui_admin_tit
 @&tool_dir.install_view bv_ui_benutzer_main
+@&tool_dir.install_view bv_ui_edit_anw
+@&tool_dir.install_view bv_ui_edit_anw_rol
+@&tool_dir.install_view bv_ui_edit_ben_rollen
+@&tool_dir.install_view bv_ui_edit_anw_rol
+@&tool_dir.install_view bv_ui_edit_komplexe_rol
 
 prompt &h3.Create PACKAGES
 @&tool_dir.install_package_spec bv_ui
