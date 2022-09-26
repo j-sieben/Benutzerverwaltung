@@ -5,36 +5,31 @@ set feedback off
 set lines 120
 set pages 9999
 whenever sqlerror exit
-clear screen
 
-set termout on
+set termout off
 col sys_user new_val SYS_USER format a30
 col install_user new_val INSTALL_USER format a30
 col apex_user new_val APEX_USER format a30
 col apex_ws new_val APEX_WS format a30
-col apex_alias new_val APEX_ALIAS format a30
+col app_alias new_val APP_ALIAS format a30
 col app_id new_val APP_ID format a30
 col apex_version new_val APEX_VERSION format a30
 col default_language new_val DEFAULT_LANGUAGE format a30
 
 
-select upper('&1.') install_user, upper('&2.') apex_user
+select upper('&1.') install_user, pit.get_default_language default_language
   from dual;
 
-select case when &APEX_USER..utl_apex.get_apex_version between 5 and 18.5 then '05_1'
-            when &APEX_USER..utl_apex.get_apex_version between 19 and 20.1 then '19_1'
-            else '20_2' end apex_version
+select '20_2' apex_version
   from dual;
    
 select workspace apex_ws, 
-       upper('&4.') apex_alias, 
-       '&5.' app_id
+       upper('&3.') app_alias, 
+       '&4.' app_id
   from apex_workspaces
- where workspace = upper('&3.');
+ where workspace = upper('&2.');
  
-select pml_name default_language
-  from &INSTALL_USER..pit_message_language_v
- where pml_default_order = 10;
+define APEX_DIR=&INSTALL_DIR.apex/&APEX_VERSION./
  
 
 @init/settings.sql

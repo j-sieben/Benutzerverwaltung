@@ -40,6 +40,15 @@ begin
     p_pms_pml_name => 'GERMAN',
     p_error_number => -20000);
 
+  pit_admin.merge_message(
+    p_pms_name => 'BV_ITEM_IS_REQUIRED',
+    p_pms_pmg_name => 'BV',
+    p_pms_text => q'^Element "#LABEL#" ist ein Pflichtelement. Bitte tragen Sie einen Wert ein.^',
+    p_pms_description => q'^Verpflichtende Eingabefelder müssen mit einem Wert versorgt werden.^',
+    p_pms_pse_id => 30,
+    p_pms_pml_name => 'GERMAN',
+    p_error_number => -20000);
+
 
   commit;
   pit_admin.create_message_package;

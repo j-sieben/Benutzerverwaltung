@@ -299,7 +299,7 @@ as
     -- Einige Tests sind mit NULL-Pruefung versehen, um doppelten Test bei bulk-Modus zu verhindern
     pit.assert_not_null(
       p_condition => p_row.rol_id,
-      p_message_name => msg.UTL_ITEM_IS_REQUIRED,
+      p_message_name => msg.BV_ITEM_IS_REQUIRED,
       p_error_code => 'ROL_ID_MISSING');
       
     if p_row.rol_id is not null then
@@ -308,7 +308,7 @@ as
     
     pit.assert_not_null(
       p_condition => p_row.rol_anw_id,
-      p_message_name => msg.UTL_ITEM_IS_REQUIRED,
+      p_message_name => msg.BV_ITEM_IS_REQUIRED,
       p_error_code => 'ROL_ANW_ID_MISSING');
     
     -- pruefe, ob Anwendung existiert.
@@ -325,7 +325,7 @@ as
     
     pit.assert_not_null(
       p_condition => p_row.rol_name,
-      p_message_name => msg.UTL_ITEM_IS_REQUIRED,
+      p_message_name => msg.BV_ITEM_IS_REQUIRED,
       p_error_code => 'ROL_NAME_MISSING');
     
     pit.assert(

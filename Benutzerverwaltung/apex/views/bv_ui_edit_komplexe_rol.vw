@@ -2,7 +2,7 @@ create or replace editionable view bv_ui_edit_komplexe_rol as
   select rro_anw_id,
        rro_parent_rol_id,
        listagg(rro_rol_id, ':') within group (order by rro_rol_id) rro_child_rol_id
-  from bv_rolle_rolle
+  from dl_bv_rolle_rolle
  group by rro_anw_id, rro_parent_rol_id;
 
 comment on column bv_ui_edit_komplexe_rol.rro_anw_id is 'Primaerschluessel, Referenz auf BV_ROLLE';

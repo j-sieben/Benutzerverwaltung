@@ -135,27 +135,27 @@ as
   begin
     pit.assert_not_null(
       p_condition => p_row.ben_ad,
-      p_message_name => msg.UTL_ITEM_IS_REQUIRED, 
+      p_message_name => msg.BV_ITEM_IS_REQUIRED, 
       p_error_code => 'BEN_AD_MISSING');
     pit.assert_not_null(
       p_condition => p_row.ben_anr_id,
-      p_message_name => msg.UTL_ITEM_IS_REQUIRED, 
+      p_message_name => msg.BV_ITEM_IS_REQUIRED, 
       p_error_code => 'BEN_ANR_ID_MISSING');
     pit.assert_not_null(
       p_condition => p_row.ben_email,
-      p_message_name => msg.UTL_ITEM_IS_REQUIRED, 
+      p_message_name => msg.BV_ITEM_IS_REQUIRED, 
       p_error_code => 'BEN_EMAIL_MISSING');
     pit.assert_not_null(
       p_condition => p_row.ben_nachname, 
-      p_message_name => msg.UTL_ITEM_IS_REQUIRED, 
+      p_message_name => msg.BV_ITEM_IS_REQUIRED, 
       p_error_code => 'BEN_NACHNAME_MISSING');
     pit.assert_not_null(
       p_condition => p_row.ben_gueltig_ab, 
-      p_message_name => msg.UTL_ITEM_IS_REQUIRED, 
+      p_message_name => msg.BV_ITEM_IS_REQUIRED, 
       p_error_code => 'BEN_GUELTIG_AB_MISSING');
     pit.assert_not_null(
       p_condition => p_row.ben_gueltig_bis, 
-      p_message_name => msg.UTL_ITEM_IS_REQUIRED, 
+      p_message_name => msg.BV_ITEM_IS_REQUIRED, 
       p_error_code => 'BEN_GUELTIG_BIS_MISSING');
       
     pit.assert(

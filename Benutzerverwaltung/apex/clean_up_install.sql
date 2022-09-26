@@ -9,7 +9,7 @@ declare
   pragma exception_init(synonym_does_not_exist, -1434);
   cursor loesche_object_cur is
           select object_name name, object_type type
-            from all_objects
+            from user_objects
            where object_name in (
                  '', -- Typen
                  'BV_UI_ADMIN_ANW', 'BV_UI_EDIT_ANW', 'BV_UI_ADMIN_ARF', 'BV_UI_ADMIN_BEN', 'BV_UI_ADMIN_ROL', -- Packages
@@ -24,7 +24,6 @@ declare
                  '' -- Sequenzen
                  )
              and object_type not like '%BODY'
-             and owner = upper('&INSTALL_USER.')
            order by object_type, object_name;
 begin
   for obj in loesche_object_cur loop
@@ -50,13 +49,12 @@ end;
 declare
   cursor synonym_cur is
     select synonym_name
-      from all_synonyms
+      from user_synonyms
      where (synonym_name like '%BV_RECHT'
         or synonym_name like '%BV_ROLLE'
         or synonym_name like '%BV_BENUTZER_RECHTE'
         or synonym_name like '%BV_BENUTZER_ROLLE'
-        or synonym_name like '%BV_BENUTZER')
-       and owner = upper('&APEX_USER.');
+        or synonym_name like '%BV_BENUTZER');
   synonym_does_not_exist exception;
   pragma exception_init(synonym_does_not_exist, -1434);
 begin
@@ -78,9 +76,8 @@ declare
   pragma exception_init(table_does_not_exist, -942);
   cursor dl_view_cur is
     select view_name
-      from all_views
-     where view_name like 'DL_BV_%'
-       and owner = upper('&APEX_USER.');
+      from user_views
+     where view_name like 'DL_BV_%';
 begin
   for vw in dl_view_cur loop
     begin
@@ -100,7 +97,7 @@ prompt &h3.Checking whether app still exists.
 declare
   l_app_id number;
   l_ws number;
-  c_app_alias constant varchar2(30 byte) := '&APEX_ALIAS.';  
+  c_app_alias constant varchar2(30 byte) := '&APP_ALIAS.';  
 begin
   select application_id, workspace_id
     into l_app_id, l_ws

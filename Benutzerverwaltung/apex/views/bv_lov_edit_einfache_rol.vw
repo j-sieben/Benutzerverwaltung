@@ -10,6 +10,6 @@ select /*+ no_merge (p) */
     on rol_anw_id = g_anw_id
  where rol_aktiv = g_true;
 
-comment on table bv_lov_rolle  is 'Alle Rollen der gewaehlten Anwendung';
-comment on column bv_lov_rolle.d is 'Display-Wert des LOV';
-comment on column bv_lov_rolle.r is 'Return-Wert des LOV';
+comment on table bv_lov_edit_einfache_rol  is 'Alle Rollen der gewaehlten Anwendung';
+comment on column bv_lov_edit_einfache_rol.d is 'Display-Wert des LOV';
+comment on column bv_lov_edit_einfache_rol.r is 'Return-Wert des LOV';

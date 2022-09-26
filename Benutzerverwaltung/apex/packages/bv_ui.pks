@@ -51,6 +51,14 @@ as
    
   procedure verarbeite_admin_anr;
   
+  
+  /** Verwaltung der Anwendungsseite ADMIN_ANW */  
+  function validiere_admin_anw
+    return boolean;  
+    
+  procedure verarbeite_admin_anw;
+  
+  
   /** Verwaltung der Anwendungsseite ADMIN_ARF */ 
   function validiere_admin_arf
     return boolean;

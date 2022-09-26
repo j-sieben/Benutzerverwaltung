@@ -30,9 +30,11 @@ prompt &h3.CREATE VIEWS
 @&tool_dir.install_view bv_ui_benutzer_main
 @&tool_dir.install_view bv_ui_edit_anw
 @&tool_dir.install_view bv_ui_edit_anw_rol
+@&tool_dir.install_view bv_ui_edit_ben
 @&tool_dir.install_view bv_ui_edit_ben_rollen
 @&tool_dir.install_view bv_ui_edit_anw_rol
 @&tool_dir.install_view bv_ui_edit_komplexe_rol
+@&tool_dir.install_view bv_ui_edit_rol
 
 prompt &h3.Create PACKAGES
 @&tool_dir.install_package_spec bv_ui
@@ -40,13 +42,13 @@ prompt &h3.Create PACKAGES
 prompt &h3.Create PACKAGE BODIES
 @&tool_dir.install_package_body bv_ui
 
-prompt &h3.Load initial data
-@&script_dir.initial_data.sql
-
 set serveroutput on
 prompt &h3.Install APEX application
 prompt &s1.Prepare APEX import
 @&install_dir.prepare_apex_import.sql
 
 prompt &s1.Install application
-@&apex_dir.bv.sql
+@&install_dir.apex/&APEX_VERSION./bv.sql
+
+prompt &h3.Load initial data
+@&script_dir.initial_data.sql

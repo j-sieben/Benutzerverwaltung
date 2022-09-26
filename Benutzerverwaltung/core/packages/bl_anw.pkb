@@ -179,12 +179,12 @@ create or replace package body bl_anw as
         
     pit.assert_not_null(
       p_condition => p_row.anw_aar_id,
-      p_message_name => msg.UTL_ITEM_IS_REQUIRED,
+      p_message_name => msg.BV_ITEM_IS_REQUIRED,
       p_error_code => 'ANW_AAR_ID_MISSING');
       
     pit.assert_not_null(
       p_condition => p_row.anw_apex_alias,
-      p_message_name => msg.UTL_ITEM_IS_REQUIRED,
+      p_message_name => msg.BV_ITEM_IS_REQUIRED,
       p_error_code => 'ANW_APEX_ALIAS_MISSING');
     
     pit.assert(
@@ -197,7 +197,7 @@ create or replace package body bl_anw as
       
     pit.assert_not_null(
       p_condition => p_row.anw_id,
-      p_message_name => msg.UTL_ITEM_IS_REQUIRED,
+      p_message_name => msg.BV_ITEM_IS_REQUIRED,
       p_error_code => 'ANW_ID_MISSING');
       
     -- pruefe, ob Anwendung existiert. Mit NULL-Pruefung, um doppelten Test bei bulk-Modus zu verhindern
@@ -377,7 +377,7 @@ select rol_id, rol_name, rol_beschreibung, rol_aktiv, rol_sortierung
     end loop;
 
     begin
-      l_stmt := 'grant execute on &INSTALL_USER..bv_recht_pkg to ' || l_anw_schema;
+      l_stmt := 'grant execute on bv_recht_pkg to ' || l_anw_schema;
       execute immediate l_stmt;
     exception
       when others then

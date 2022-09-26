@@ -6,14 +6,12 @@ begin
   select workspace_id 
     into l_workspace_id
     from apex_workspaces
-   where workspace = '&APEX_WS.';
+   where workspace = upper('&APEX_WS.');
     
   --apex_application_install.generate_application_id;
   apex_application_install.set_application_id(&APP_ID.);
-    apex_application_install.set_application_alias('&APEX_ALIAS.');
+  apex_application_install.set_application_alias('&APP_ALIAS.');
   apex_application_install.set_workspace_id(l_workspace_id);
-  apex_application_install.generate_offset;
-  apex_application_install.set_schema( '&INSTALL_USER.' );
   
   dbms_output.put_line('&s1.Workspace: ' || l_workspace_id);
 exception 

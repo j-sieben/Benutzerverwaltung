@@ -23,3 +23,20 @@ select 'RECHTE_ROLLEN', 'Rechte und Rollen', 'Die Rechteverwaltung besteht aus R
 
 
 commit;
+
+
+prompt DEFAULT SUPER_ADMIN erzeugen
+begin
+  bl_recht.create_super_admin(
+    p_ben_ad => 'BV_ADMIN',
+    p_ben_stz => '123',
+    p_ben_anr_id => 'HR',
+    p_ben_nachname => 'Sieben',
+    p_ben_email => 'j.sieben@condes.de',
+    p_ben_telefon => '+49-1266-124433');
+    
+  -- Materialized View aktualisieren
+  dbms_mview.refresh('BV_BENUTZER_RECHTE');
+end;
+/
+
